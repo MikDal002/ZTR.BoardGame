@@ -39,7 +39,7 @@ public partial class Build : NukeBuild
     [GitVersion] readonly GitVersion GitVersion;
     [GitRepository] readonly GitRepository GitRepository;
 
-    const string NameOfProjectToBePublished = "ZtrTemplates.Console";
+    const string NameOfProjectToBePublished = "ZtrBoardGame.Console";
     Project ProjectToPublish =>
         Solution.GetProject(NameOfProjectToBePublished)
         ?? Solution.GetAllProjects(NameOfProjectToBePublished).FirstOrDefault()
