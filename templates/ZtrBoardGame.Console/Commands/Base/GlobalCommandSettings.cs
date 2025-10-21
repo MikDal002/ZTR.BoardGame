@@ -1,7 +1,7 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
-namespace ZtrTemplates.Console.Commands.Base;
+namespace ZtrBoardGame.Console.Commands.Base;
 
 public class GlobalCommandSettings : CommandSettings
 {

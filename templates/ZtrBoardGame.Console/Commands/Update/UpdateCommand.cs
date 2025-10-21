@@ -1,11 +1,11 @@
-﻿using Spectre.Console;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrTemplates.Console.Commands.Base;
+using ZtrBoardGame.Console.Commands.Base;
 
-namespace ZtrTemplates.Console;
+namespace ZtrBoardGame.Console;
 
 public class VersionCommandSettings : CommandSettings
 {

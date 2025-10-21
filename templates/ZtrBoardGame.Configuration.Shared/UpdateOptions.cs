@@ -1,5 +1,5 @@
-// In ZtrTemplates.Configuration.Shared/UpdateOptions.cs
-namespace ZtrTemplates.Configuration.Shared;
+// In ZtrBoardGame.Configuration.Shared/UpdateOptions.cs
+namespace ZtrBoardGame.Configuration.Shared;
 
 public class UpdateOptions
 {

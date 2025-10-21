@@ -1,14 +1,14 @@
-﻿using Serilog;
+using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Linq;
 using System.Threading.Tasks;
 using Velopack;
-using ZtrTemplates.Console.Commands.Base; // Added for GlobalCommandSettings
-using ZtrTemplates.Console.DependencyInjection;
-using ZtrTemplates.Console.Infrastructure;
+using ZtrBoardGame.Console.Commands.Base; // Added for GlobalCommandSettings
+using ZtrBoardGame.Console.DependencyInjection;
+using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrTemplates.Console;
+namespace ZtrBoardGame.Console;
 class Program
 {
     static async Task Main(string[] args)
@@ -38,7 +38,7 @@ class Program
             config.ValidateExamples();
 #endif
 
-            config.SetApplicationName("ZtrTemplates.Console");
+            config.SetApplicationName("ZtrBoardGame.Console");
             config.SetHelpProvider(new CustomHelpProvider(config.Settings));
 
             config.AddCommand<ExampleCommand>("commandName");

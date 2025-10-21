@@ -4,9 +4,9 @@ using Spectre.Console.Cli.Help;
 using Spectre.Console.Rendering;
 using System.Collections.Generic;
 using System.Linq;
-using ZtrTemplates.Console.Commands.Base;
+using ZtrBoardGame.Console.Commands.Base;
 
-namespace ZtrTemplates.Console.Infrastructure;
+namespace ZtrBoardGame.Console.Infrastructure;
 
 public class CustomHelpProvider : HelpProvider
 {

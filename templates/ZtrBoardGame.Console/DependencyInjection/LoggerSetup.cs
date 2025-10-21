@@ -4,7 +4,7 @@ using Serilog;
 using Serilog.Events;
 using System.IO;
 
-namespace ZtrTemplates.Console.DependencyInjection;
+namespace ZtrBoardGame.Console.DependencyInjection;
 
 public static class LoggerSetup
 {

@@ -1,6 +1,6 @@
-using ZtrTemplates.Console.Infrastructure;
+using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrTemplates.Console.Tests.Infrastructure;
+namespace ZtrBoardGame.Console.Tests.Infrastructure;
 
 [TestFixture]
 public class ConsoleAppCancellationTokenSourceTests

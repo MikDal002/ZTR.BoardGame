@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 using System;
 using System.Threading;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Velopack;
 using Velopack.Sources;
 
-namespace ZtrTemplates.Console;
+namespace ZtrBoardGame.Console;
 
 public interface IUpdateService
 {
@@ -19,7 +19,7 @@ public class UpdateService : IUpdateService
 {
     private readonly UpdateManager _updateManager;
 
-    public UpdateService(IOptions<ZtrTemplates.Configuration.Shared.UpdateOptions> updateOptions)
+    public UpdateService(IOptions<ZtrBoardGame.Configuration.Shared.UpdateOptions> updateOptions)
     {
         var options = updateOptions.Value;
         var url = options.UpdateUrl;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Collections.Generic;
@@ -6,10 +6,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrTemplates.Console.Commands.Base;
-using ZtrTemplates.Console.Infrastructure;
+using ZtrBoardGame.Console.Commands.Base;
+using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrTemplates.Console;
+namespace ZtrBoardGame.Console;
 
 public class ExampleSettings : CommandSettings
 {

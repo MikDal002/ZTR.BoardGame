@@ -389,4 +389,4 @@ FodyWeavers.xsd
 /output
 /.nuke/temp/release_notes.md
 /build/Properties/launchSettings.json
-/templates/ZtrTemplates.Console/Properties/launchSettings.json
+/templates/ZtrBoardGame.Console/Properties/launchSettings.json

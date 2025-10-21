@@ -4,7 +4,7 @@ using System.ComponentModel; // Required for DescriptionAttribute
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ZtrTemplates.Console.Infrastructure;
+namespace ZtrBoardGame.Console.Infrastructure;
 
 public static class CommandOptionExtensions
 {

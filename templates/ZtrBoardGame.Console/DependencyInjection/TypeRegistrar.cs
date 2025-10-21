@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console.Cli;
 using System;
 using System.IO;
-using ZtrTemplates.Configuration.Shared;
-using ZtrTemplates.Console.Infrastructure;
+using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrTemplates.Console.DependencyInjection;
+namespace ZtrBoardGame.Console.DependencyInjection;
 
 public sealed class TypeRegistrar : ITypeRegistrar
 {
