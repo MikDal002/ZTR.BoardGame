@@ -1,0 +1,22 @@
+<Project>
+    <PropertyGroup>
+        <LangVersion>12</LangVersion>
+        <TargetFramework>net9.0</TargetFramework>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <!-- Required by code style rules to be in power. Such a funny thing about .Net :D -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- 
+          - CS1591: Missing XML comment for publicly visible type or member
+        -->
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsAsErrors />
+        <!-- 
+          - NU1093 - discard nuget vurnerabilities warnings,
+        -->
+        <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
+    </PropertyGroup>
+</Project>

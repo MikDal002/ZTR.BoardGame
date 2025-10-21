@@ -1,0 +1,44 @@
+workflow: GitFlow/v1 # Temporarily commented out to let GitVersion infer from branches
+
+branches:
+  master:
+    regex: ^(master|main)$
+    label: ''
+    increment: Patch
+    track-merge-target: false
+    is-release-branch: true
+
+  develop:
+    regex: ^develop$
+    label: alpha
+    increment: Minor
+    track-merge-target: true
+    is-release-branch: false
+
+  feature:
+    # This regex will match any branch name that is NOT 'master' or 'develop'.
+    # It also implicitly won't match 'release/...' or 'hotfix/...' if you add those
+    # configurations later, because those more specific regexes would match first.
+    regex: ^(?!(master|develop|release|hotfix)$)(?<BranchName>.+)$
+    label: '{BranchName}'
+    increment: Inherit
+    source-branches: [develop, main, master]
+    track-merge-target: false
+    is-release-branch: false
+
+  hotfix:
+    regex: hotfixes?[/-]
+    label: beta
+    increment: Patch
+    source-branches: [master, main]
+    track-merge-target: false
+    is-release-branch: true
+
+# Optional: Release branches (if you use them as part of GitFlow)
+#  release:
+#    regex: releases?[/-]
+#    label: rc # Release Candidate (e.g., 1.0.0-rc.1)
+#    increment: None # Version is usually set when branching from develop
+#    prevent-increment-of-merged-branch-version: true
+#    track-merge-target: false
+#    is-release-branch: true

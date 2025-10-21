@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Part of configuration is shared in server/Directory.Build.props file -->
+    <OutputType>Exe</OutputType>
+    <RootNamespace></RootNamespace>
+    <TargetFramework>net9.0</TargetFramework>
+    <NoWarn>CS0649;CS0169;CA1050;CA1822;CA2211;IDE1006</NoWarn>
+    <NukeRootDirectory>..</NukeRootDirectory>
+    <NukeScriptDirectory>..</NukeScriptDirectory>
+    <NukeTelemetryVersion>1</NukeTelemetryVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nuke.Common" Version="9.0.4" />
+    <PackageReference Include="SSH.NET" Version="2024.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageDownload Include="GitVersion.Tool" Version="[6.2.0]" />
+    <PackageDownload Include="vpk" Version="[0.0.1251]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\templates\ZtrTemplates.Configuration.Shared\ZtrTemplates.Configuration.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
