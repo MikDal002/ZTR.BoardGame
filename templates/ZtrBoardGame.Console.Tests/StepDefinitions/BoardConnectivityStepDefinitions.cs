@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
@@ -12,32 +13,31 @@ namespace ZtrBoardGame.Console.Tests.StepDefinitions;
 [Binding]
 public class BoardConnectivityStepDefinitions
 {
-    private static IServiceCollection _services;
-    private static CancellationTokenSource _cancellationTokenSource;
-    private static ManualResetEvent _requestReceivedEvent;
-    private static Mock<HttpMessageHandler> _httpMessageHandlerMock;
+    private IServiceCollection _services;
+    private CancellationTokenSource _cancellationTokenSource;
+    private ManualResetEvent _requestReceivedEvent;
+    private Mock<HttpMessageHandler> _httpMessageHandlerMock;
 
     [BeforeScenario]
-    public static void BeforeScenario()
+    public void BeforeScenario()
     {
         _services = new ServiceCollection();
         _cancellationTokenSource = new CancellationTokenSource();
         _requestReceivedEvent = new ManualResetEvent(false);
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
 
-        // Add a mock logger
-        _services.AddSingleton<ILogger<HelloService>>(new Mock<ILogger<HelloService>>().Object);
+        _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
     }
 
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
-    public static void GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs(string pcServerAddress)
+    public void GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs(string pcServerAddress)
     {
         var networkSettings = new NetworkSettings { PcServerAddress = pcServerAddress };
         _services.AddSingleton(Options.Create(networkSettings));
     }
 
     [When(@"the board application starts")]
-    public static void WhenTheBoardApplicationStarts()
+    public void WhenTheBoardApplicationStarts()
     {
         _httpMessageHandlerMock
             .Protected()
@@ -64,19 +64,19 @@ public class BoardConnectivityStepDefinitions
     }
 
     [Then(@"the application should run without startup errors")]
-    public static void ThenTheApplicationShouldRunWithoutStartupErrors()
+    public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
         // This is implicitly tested by the other steps.
     }
 
     [Then(@"the board should begin its announcement cycle to ""(.*)""")]
-    public static void ThenTheBoardShouldBeginItsAnnouncementCycleTo(string url)
+    public void ThenTheBoardShouldBeginItsAnnouncementCycleTo(string url)
     {
         _requestReceivedEvent.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
     }
 
     [AfterScenario]
-    public static void AfterScenario()
+    public void AfterScenario()
     {
         _cancellationTokenSource.Cancel();
     }
