@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Velopack;
 using ZtrBoardGame.Console.Commands.Base; // Added for GlobalCommandSettings
+using ZtrBoardGame.Console.Commands.Connectivity;
 using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.Console.Infrastructure;
 
@@ -42,6 +43,10 @@ class Program
             config.SetHelpProvider(new CustomHelpProvider(config.Settings));
 
             config.AddCommand<ExampleCommand>("commandName");
+            config.AddBranch("board", board =>
+            {
+                board.AddCommand<BoardCommand>("run");
+            });
             config.AddCommand<UpdateCommand>("version")
                 .WithExample("version", "--update");
 
