@@ -1,9 +1,3 @@
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Git;
-using Nuke.Common.Utilities;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
