@@ -1,5 +1,5 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Serilog;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,18 +11,20 @@ public class HelloService
 {
     private readonly NetworkSettings _networkSettings;
     private readonly HttpClient _httpClient;
+    private readonly ILogger<HelloService> _logger;
 
-    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient)
+    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient, ILogger<HelloService> logger)
     {
         _networkSettings = networkSettings.Value;
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task AnnouncePresence(CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
-            Log.Error("PC server address is not configured");
+            _logger.LogError("PC server address is not configured");
             return;
         }
 
@@ -32,11 +34,11 @@ public class HelloService
             {
                 var response = await _httpClient.PostAsync($"{_networkSettings.PcServerAddress}/api/hello", null, cancellationToken);
                 response.EnsureSuccessStatusCode();
-                Log.Information("Successfully announced presence to PC server");
+                _logger.LogInformation("Successfully announced presence to PC server");
             }
             catch (HttpRequestException e)
             {
-                Log.Error(e, "Failed to announce presence to PC server");
+                _logger.LogError(e, "Failed to announce presence to PC server");
             }
 
             await Task.Delay(10000, cancellationToken);

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
@@ -23,6 +24,9 @@ public class BoardConnectivityStepDefinitions
         _cancellationTokenSource = new CancellationTokenSource();
         _requestReceivedEvent = new ManualResetEvent(false);
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
+
+        // Add a mock logger
+        _services.AddSingleton<ILogger<HelloService>>(new Mock<ILogger<HelloService>>().Object);
     }
 
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
