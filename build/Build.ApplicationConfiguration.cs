@@ -1,7 +1,4 @@
 #nullable enable
-using Nuke.Common;
-using Nuke.Common.Utilities;
-using Serilog;
 using System.IO;
 using System.Linq;
 using System.Text.Json;

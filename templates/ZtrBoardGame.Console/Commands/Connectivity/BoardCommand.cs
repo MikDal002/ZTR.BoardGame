@@ -3,32 +3,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
 
-namespace ZtrBoardGame.Console.Commands.Connectivity
+namespace ZtrBoardGame.Console.Commands.Connectivity;
+
+public class BoardSettings : CommandSettings
 {
-    public class BoardSettings : CommandSettings
+}
+
+public class BoardCommand : CancellableAsyncCommand<BoardSettings>
+{
+    private readonly HelloService _helloService;
+
+    public BoardCommand(HelloService helloService)
     {
+        _helloService = helloService;
     }
 
-    public class BoardCommand : CancellableAsyncCommand<BoardSettings>
+    public override async Task<int> ExecuteAsync(CommandContext context, BoardSettings settings, CancellationToken cancellationToken)
     {
-        private readonly HelloService _helloService;
-
-        public BoardCommand(HelloService helloService)
+        try
         {
-            _helloService = helloService;
+            await _helloService.AnnouncePresence(cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore the task canceled exception
         }
 
-        public override async Task<int> ExecuteAsync(CommandContext context, BoardSettings settings, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _helloService.AnnouncePresence(cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                // Ignore the task canceled exception
-            }
-            return 0;
-        }
+        return 0;
     }
 }

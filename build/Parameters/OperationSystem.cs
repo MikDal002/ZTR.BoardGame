@@ -1,6 +1,4 @@
-﻿using Nuke.Common;
-using Nuke.Common.Tooling;
-using System;
+﻿using System;
 using System.ComponentModel;
 
 [TypeConverter(typeof(TypeConverter<OperationSystem>))]

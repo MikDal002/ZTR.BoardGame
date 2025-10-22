@@ -1,8 +1,3 @@
-using Nuke.Common;
-using Nuke.Common.IO;
-using Nuke.Common.Tooling;
-using Renci.SshNet;
-
 partial class Build
 {
     [PathVariable] public Tool Scp;

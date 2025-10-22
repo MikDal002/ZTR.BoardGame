@@ -5,42 +5,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 
-namespace ZtrBoardGame.Console
-{
-    public class HelloService
-    {
-        private readonly NetworkSettings _networkSettings;
-        private readonly HttpClient _httpClient;
+namespace ZtrBoardGame.Console;
 
-        public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient)
+public class HelloService
+{
+    private readonly NetworkSettings _networkSettings;
+    private readonly HttpClient _httpClient;
+
+    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient)
+    {
+        _networkSettings = networkSettings.Value;
+        _httpClient = httpClient;
+    }
+
+    public async Task AnnouncePresence(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
-            _networkSettings = networkSettings.Value;
-            _httpClient = httpClient;
+            Log.Error("PC server address is not configured");
+            return;
         }
 
-        public async Task AnnouncePresence(CancellationToken cancellationToken)
+        while (!cancellationToken.IsCancellationRequested)
         {
-            if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
+            try
             {
-                Log.Error("PC server address is not configured");
-                return;
+                var response = await _httpClient.PostAsync($"{_networkSettings.PcServerAddress}/api/hello", null, cancellationToken);
+                response.EnsureSuccessStatusCode();
+                Log.Information("Successfully announced presence to PC server");
+            }
+            catch (HttpRequestException e)
+            {
+                Log.Error(e, "Failed to announce presence to PC server");
             }
 
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var response = await _httpClient.PostAsync($"{_networkSettings.PcServerAddress}/api/hello", null, cancellationToken);
-                    response.EnsureSuccessStatusCode();
-                    Log.Information("Successfully announced presence to PC server");
-                }
-                catch (HttpRequestException e)
-                {
-                    Log.Error(e, "Failed to announce presence to PC server");
-                }
-
-                await Task.Delay(10000, cancellationToken);
-            }
+            await Task.Delay(10000, cancellationToken);
         }
     }
 }
