@@ -102,7 +102,7 @@ public class BoardConnectivityStepDefinitions
         }
 
         _announcementTask.IsFaulted.Should().BeTrue();
-        _announcementTask.Exception.InnerException.Should().BeOfType<InvalidOperationException>();
+        _announcementTask.Exception!.InnerException.Should().BeOfType<InvalidOperationException>();
     }
 
     [Then(@"an error message ""(.*)"" should be displayed in the console")]

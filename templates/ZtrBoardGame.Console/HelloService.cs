@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ public class HelloService : IHelloService
 
     public async Task AnnouncePresence(CancellationToken cancellationToken)
     {
+        using var _ = _logger.BeginScope(new Dictionary<string, object>() { { "PcServerAddress", _networkSettings.PcServerAddress } });
         if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
             const string errorMessage = "PC server address is not configured";
@@ -44,10 +46,12 @@ public class HelloService : IHelloService
             {
                 var response = await _httpClient.PostAsync($"{_networkSettings.PcServerAddress}/api/hello", null, cancellationToken);
                 response.EnsureSuccessStatusCode();
+                _console.MarkupLine($"[green]Connected to the server[/]");
                 _logger.LogInformation("Successfully announced presence to PC server");
             }
             catch (HttpRequestException e)
             {
+                _console.MarkupLine($"[red]Cannot connect to the server {_networkSettings.PcServerAddress}[/]");
                 _logger.LogError(e, "Failed to announce presence to PC server");
             }
             catch (TaskCanceledException)
