@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Spectre.Console;
+using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +20,24 @@ public class HelloService : IHelloService
     private readonly NetworkSettings _networkSettings;
     private readonly HttpClient _httpClient;
     private readonly ILogger<HelloService> _logger;
+    private readonly IAnsiConsole _console;
 
-    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient, ILogger<HelloService> logger)
+    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient, ILogger<HelloService> logger, IAnsiConsole console)
     {
         _networkSettings = networkSettings.Value;
         _httpClient = httpClient;
         _logger = logger;
+        _console = console;
     }
 
     public async Task AnnouncePresence(CancellationToken cancellationToken)
     {
+        using var _ = _logger.BeginScope(new Dictionary<string, object>() { { "PcServerAddress", _networkSettings.PcServerAddress } });
         if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
-            _logger.LogError("PC server address is not configured");
-            return;
+            const string errorMessage = "PC server address is not configured";
+            _console.MarkupLine($"[red]Error:[/] {errorMessage}");
+            throw new InvalidOperationException(errorMessage);
         }
 
         while (!cancellationToken.IsCancellationRequested)
@@ -39,11 +46,18 @@ public class HelloService : IHelloService
             {
                 var response = await _httpClient.PostAsync($"{_networkSettings.PcServerAddress}/api/hello", null, cancellationToken);
                 response.EnsureSuccessStatusCode();
+                _console.MarkupLine($"[green]Connected to the server[/]");
                 _logger.LogInformation("Successfully announced presence to PC server");
             }
             catch (HttpRequestException e)
             {
+                _console.MarkupLine($"[red]Cannot connect to the server {_networkSettings.PcServerAddress}[/]");
                 _logger.LogError(e, "Failed to announce presence to PC server");
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation("Announcement task was canceled.");
+                break;
             }
 
             await Task.Delay(10000, cancellationToken);
