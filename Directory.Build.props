@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <LangVersion>12</LangVersion>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <!-- Required by code style rules to be in power. Such a funny thing about .Net :D -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>

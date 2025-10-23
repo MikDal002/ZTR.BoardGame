@@ -11,9 +11,9 @@ public class BoardSettings : CommandSettings
 
 public class BoardCommand : CancellableAsyncCommand<BoardSettings>
 {
-    private readonly HelloService _helloService;
+    private readonly IHelloService _helloService;
 
-    public BoardCommand(HelloService helloService)
+    public BoardCommand(IHelloService helloService)
     {
         _helloService = helloService;
     }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using System.Net;
+using Reqnroll;
 using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
@@ -54,16 +55,16 @@ public class BoardConnectivityStepDefinitions
 
         var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
         _services.AddSingleton(httpClient);
-        _services.AddSingleton<HelloService>();
+        _services.AddSingleton<IHelloService, HelloService>();
 
         var serviceProvider = _services.BuildServiceProvider();
-        var helloService = serviceProvider.GetRequiredService<HelloService>();
+        var helloService = serviceProvider.GetRequiredService<IHelloService>();
 
         Task.Run(() => helloService.AnnouncePresence(_cancellationTokenSource.Token));
     }
 
     [Then(@"the application should run without startup errors")]
-    public static void ThenTheApplicationShouldRunWithoutStartupErrors()
+    public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
         // This is implicitly tested by the other steps.
     }

@@ -7,7 +7,12 @@ using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console;
 
-public class HelloService
+public interface IHelloService
+{
+    Task AnnouncePresence(CancellationToken cancellationToken);
+}
+
+public class HelloService : IHelloService
 {
     private readonly NetworkSettings _networkSettings;
     private readonly HttpClient _httpClient;

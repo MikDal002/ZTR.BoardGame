@@ -10,7 +10,6 @@ using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console;
-
 class Program
 {
     static async Task Main(string[] args)
