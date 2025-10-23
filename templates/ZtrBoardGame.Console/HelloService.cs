@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,8 +30,9 @@ public class HelloService : IHelloService
     {
         if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
-            _logger.LogError("PC server address is not configured");
-            return;
+            const string errorMessage = "PC server address is not configured";
+            _logger.LogError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
         }
 
         while (!cancellationToken.IsCancellationRequested)
@@ -44,6 +46,11 @@ public class HelloService : IHelloService
             catch (HttpRequestException e)
             {
                 _logger.LogError(e, "Failed to announce presence to PC server");
+            }
+            catch (TaskCanceledException)
+            {
+                _logger.LogInformation("Announcement task was canceled.");
+                break;
             }
 
             await Task.Delay(10000, cancellationToken);
