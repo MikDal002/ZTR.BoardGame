@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using System.Net;
-using Reqnroll;
 using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
@@ -64,7 +63,7 @@ public class BoardConnectivityStepDefinitions
     }
 
     [Then(@"the application should run without startup errors")]
-    public void ThenTheApplicationShouldRunWithoutStartupErrors()
+    public static void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
         // This is implicitly tested by the other steps.
     }
