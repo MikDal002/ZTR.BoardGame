@@ -1,3 +1,5 @@
+using Nuke.Common.Tooling;
+
 static class ArgumentStringHandlerExtensions
 {
     public enum IsSecret

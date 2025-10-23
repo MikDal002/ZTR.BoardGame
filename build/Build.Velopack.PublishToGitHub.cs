@@ -1,3 +1,8 @@
+using Nuke.Common;
+using Nuke.Common.CI.GitHubActions;
+using Nuke.Common.Tools.GitHub;
+using Nuke.Common.Utilities;
+
 [GitHubActions(
     "Create Velopack Release",
     GitHubActionsImage.WindowsLatest, GitHubActionsImage.UbuntuLatest,

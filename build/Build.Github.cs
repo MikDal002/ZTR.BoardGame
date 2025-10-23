@@ -1,3 +1,5 @@
+using Nuke.Common.CI.GitHubActions;
+
 [GitHubActions("For each PR",
     GitHubActionsImage.WindowsLatest, GitHubActionsImage.UbuntuLatest, OnPullRequestBranches = new[]
     {

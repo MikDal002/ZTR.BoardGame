@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using System.Net;
-using TechTalk.SpecFlow;
+using Reqnroll;
 using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
