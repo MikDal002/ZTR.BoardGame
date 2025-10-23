@@ -176,8 +176,8 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
     await testRunner.ThenAsync("the application should fail to start", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 13
-    await testRunner.AndAsync("a log entry with a clear error \"PC server address is not configured\" should be cr" +
-                        "eated", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("an error message \"PC server address is not configured\" should be displayed in the" +
+                        " console", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

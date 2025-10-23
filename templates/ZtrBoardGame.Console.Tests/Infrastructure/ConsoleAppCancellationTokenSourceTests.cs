@@ -1,4 +1,3 @@
-using FluentAssertions;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console.Tests.Infrastructure;

@@ -10,4 +10,4 @@ Scenario: Board starts without a server address configuration
     Given the board's configuration does not specify the PC server address
     When the board application starts
     Then the application should fail to start
-    And a log entry with a clear error "PC server address is not configured" should be created
+    And an error message "PC server address is not configured" should be displayed in the console

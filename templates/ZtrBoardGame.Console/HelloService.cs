@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Spectre.Console;
 using System;
 using System.Net.Http;
 using System.Threading;
@@ -18,12 +19,14 @@ public class HelloService : IHelloService
     private readonly NetworkSettings _networkSettings;
     private readonly HttpClient _httpClient;
     private readonly ILogger<HelloService> _logger;
+    private readonly IAnsiConsole _console;
 
-    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient, ILogger<HelloService> logger)
+    public HelloService(IOptions<NetworkSettings> networkSettings, HttpClient httpClient, ILogger<HelloService> logger, IAnsiConsole console)
     {
         _networkSettings = networkSettings.Value;
         _httpClient = httpClient;
         _logger = logger;
+        _console = console;
     }
 
     public async Task AnnouncePresence(CancellationToken cancellationToken)
@@ -31,7 +34,7 @@ public class HelloService : IHelloService
         if (string.IsNullOrEmpty(_networkSettings.PcServerAddress))
         {
             const string errorMessage = "PC server address is not configured";
-            _logger.LogError(errorMessage);
+            _console.MarkupLine($"[red]Error:[/] {errorMessage}");
             throw new InvalidOperationException(errorMessage);
         }
 

@@ -1,12 +1,12 @@
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using System;
+using Spectre.Console;
+using Spectre.Console.Testing;
 using System.Net;
-using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
@@ -19,8 +19,8 @@ public class BoardConnectivityStepDefinitions
     private ManualResetEvent _requestReceivedEvent;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private IHelloService _helloService;
-    private Mock<ILogger<HelloService>> _loggerMock;
     private Task _announcementTask;
+    private TestConsole _console;
 
     [BeforeScenario]
     public void BeforeScenario()
@@ -29,9 +29,10 @@ public class BoardConnectivityStepDefinitions
         _cancellationTokenSource = new CancellationTokenSource();
         _requestReceivedEvent = new ManualResetEvent(false);
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        _loggerMock = new Mock<ILogger<HelloService>>();
+        _console = new TestConsole();
 
-        _services.AddSingleton<ILogger<HelloService>>(_loggerMock.Object);
+        _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
+        _services.AddSingleton<IAnsiConsole>(_console);
     }
 
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
@@ -100,22 +101,14 @@ public class BoardConnectivityStepDefinitions
             // Expected for a faulted task
         }
 
-        _announcementTask.IsFaulted.Should().BeTrue("the application should fail when the server address is not configured");
-        _announcementTask.Exception?.InnerException.Should().BeOfType<InvalidOperationException>();
+        _announcementTask.IsFaulted.Should().BeTrue();
+        _announcementTask.Exception.InnerException.Should().BeOfType<InvalidOperationException>();
     }
 
-    [Then(@"a log entry with a clear error ""(.*)"" should be created")]
-    public void ThenALogEntryWithAClearErrorShouldBeCreated(string errorMessage)
+    [Then(@"an error message ""(.*)"" should be displayed in the console")]
+    public void ThenAnErrorMessageShouldBeDisplayedInTheConsole(string errorMessage)
     {
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(errorMessage)),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-            Times.Once,
-            $"Expected a log entry with the message '{errorMessage}'");
+        _console.Output.Should().Contain(errorMessage);
     }
 
     [AfterScenario]
