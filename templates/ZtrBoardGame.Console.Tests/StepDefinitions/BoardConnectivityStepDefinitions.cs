@@ -16,6 +16,7 @@ public class BoardConnectivityStepDefinitions
     private CancellationTokenSource _cancellationTokenSource;
     private ManualResetEvent _requestReceivedEvent;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
+    private IHelloService _helloService;
 
     [BeforeScenario]
     public void BeforeScenario()
@@ -57,9 +58,8 @@ public class BoardConnectivityStepDefinitions
         _services.AddSingleton<IHelloService, HelloService>();
 
         var serviceProvider = _services.BuildServiceProvider();
-        var helloService = serviceProvider.GetRequiredService<IHelloService>();
+        _helloService = serviceProvider.GetRequiredService<IHelloService>();
 
-        Task.Run(() => helloService.AnnouncePresence(_cancellationTokenSource.Token));
     }
 
     [Then(@"the application should run without startup errors")]
@@ -69,8 +69,9 @@ public class BoardConnectivityStepDefinitions
     }
 
     [Then(@"the board should begin its announcement cycle to ""(.*)""")]
-    public void ThenTheBoardShouldBeginItsAnnouncementCycleTo(string url)
+    public void ThenTheBoardShouldBeginItsAnnouncementCycleTo(string _)
     {
+        Task.Run(() => _helloService.AnnouncePresence(_cancellationTokenSource.Token));
         _requestReceivedEvent.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
     }
 

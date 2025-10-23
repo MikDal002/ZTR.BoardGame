@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="9.0.4" />
-    <PackageReference Include="SSH.NET" Version="2024.2.0" />
+    <PackageReference Include="SSH.NET" Version="2025.0.0" />
   </ItemGroup>
 
   <ItemGroup>

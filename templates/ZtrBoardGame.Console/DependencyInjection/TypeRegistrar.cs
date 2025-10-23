@@ -35,7 +35,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.Configure<NetworkSettings>(configuration.GetSection(nameof(NetworkSettings)));
         _services.AddSingleton<IUpdateService, UpdateService>();
         _services.AddSingleton<HttpClient>();
-        _services.AddSingleton<HelloService>();
+        _services.AddSingleton<IHelloService, HelloService>();
     }
 
     public ITypeResolver Build() => new TypeResolver(_services.BuildServiceProvider());
