@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console.Cli;
 using System;
 using System.IO;
+using System.Net.Http;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
 
@@ -17,10 +18,12 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services = new ServiceCollection();
 
         // --- Configuration Setup ---
+        var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             // IF file doesn't exists run _build project first.
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
             .Build();
 
         _services.AddSingleton<IConfiguration>(configuration);
@@ -29,7 +32,10 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
 
         _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
+        _services.Configure<NetworkSettings>(configuration.GetSection(nameof(NetworkSettings)));
         _services.AddSingleton<IUpdateService, UpdateService>();
+        _services.AddSingleton<HttpClient>();
+        _services.AddSingleton<IHelloService, HelloService>();
     }
 
     public ITypeResolver Build() => new TypeResolver(_services.BuildServiceProvider());
