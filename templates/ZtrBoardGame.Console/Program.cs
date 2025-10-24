@@ -11,9 +11,9 @@ using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console;
 
-class Program
+public class Program
 {
-    static async Task Main(string[] args)
+    public static async Task Main(string[] args)
     {
         // Update the application
         VelopackApp.Build().Run();
@@ -38,8 +38,8 @@ class Program
         {
 #if DEBUG
             config.ValidateExamples();
+            config.PropagateExceptions();
 #endif
-
             config.SetApplicationName("ZtrBoardGame.Console");
             config.SetHelpProvider(new CustomHelpProvider(config.Settings));
 
@@ -47,6 +47,10 @@ class Program
             config.AddBranch("board", board =>
             {
                 board.AddCommand<BoardCommand>("run");
+            });
+            config.AddBranch("pc", pc =>
+            {
+                pc.AddCommand<PcCommand>("run");
             });
             config.AddCommand<UpdateCommand>("version")
                 .WithExample("version", "--update");
