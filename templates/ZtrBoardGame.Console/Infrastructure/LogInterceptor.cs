@@ -43,7 +43,7 @@ public sealed class LogInterceptor : ICommandInterceptor
     {
         if (settings == null)
         {
-            return new Dictionary<string, object?>();
+            return new();
         }
 
         return settings.GetType()

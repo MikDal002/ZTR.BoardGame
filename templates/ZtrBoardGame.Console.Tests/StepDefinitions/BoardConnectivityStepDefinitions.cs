@@ -8,6 +8,7 @@ using Spectre.Console;
 using Spectre.Console.Testing;
 using System.Net;
 using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Commands.Board;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
 
@@ -19,19 +20,21 @@ public class BoardConnectivityStepDefinitions
     private ManualResetEvent _requestReceivedEvent;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private IHelloService _helloService;
-    private Task _announcementTask;
     private TestConsole _console;
+    ServiceProvider _serviceProvider;
 
     [BeforeScenario]
     public void BeforeScenario()
     {
         _services = new ServiceCollection();
-        _cancellationTokenSource = new CancellationTokenSource();
-        _requestReceivedEvent = new ManualResetEvent(false);
-        _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        _console = new TestConsole();
+        _cancellationTokenSource = new();
+        _requestReceivedEvent = new(false);
+        _httpMessageHandlerMock = new();
+        _console = new();
 
         _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
+        _services.AddSingleton<IServerAddressProvider>(new ServerAddressStorage() { ServerAddress = "http://dummy-address-for-test" });
+        _services.AddSingleton<IHelloService, HelloService>();
         _services.AddSingleton<IAnsiConsole>(_console);
     }
 
@@ -59,19 +62,18 @@ public class BoardConnectivityStepDefinitions
             })
             .Callback(() => _requestReceivedEvent.Set());
 
-        var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-        _services.AddSingleton(httpClient);
-        _services.AddSingleton<IHelloService, HelloService>();
+        _services.ConfigureHelloServiceHttpClient(_httpMessageHandlerMock.Object);
 
-        var serviceProvider = _services.BuildServiceProvider();
-        _helloService = serviceProvider.GetRequiredService<IHelloService>();
+        _serviceProvider = _services.BuildServiceProvider();
 
-        _announcementTask = _helloService.AnnouncePresence(_cancellationTokenSource.Token);
     }
 
     [Then(@"the application should run without startup errors")]
     public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
+        _helloService = _serviceProvider.GetRequiredService<IHelloService>();
+        var _announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
+
         _announcementTask.Wait(TimeSpan.FromSeconds(1));
         _announcementTask.IsFaulted.Should().BeFalse();
     }
@@ -90,19 +92,14 @@ public class BoardConnectivityStepDefinitions
     }
 
     [Then(@"the application should fail to start")]
-    public void ThenTheApplicationShouldFailToStart()
+    public async Task ThenTheApplicationShouldFailToStart()
     {
-        try
+        var action = () =>
         {
-            _announcementTask.Wait(_cancellationTokenSource.Token);
-        }
-        catch (AggregateException)
-        {
-            // Expected for a faulted task
-        }
-
-        _announcementTask.IsFaulted.Should().BeTrue();
-        _announcementTask.Exception!.InnerException.Should().BeOfType<InvalidOperationException>();
+            var helloService = _serviceProvider.GetRequiredService<IHelloService>();
+            return helloService.AnnouncePresenceAsync(CancellationToken.None);
+        };
+        await action.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Then(@"an error message ""(.*)"" should be displayed in the console")]
@@ -115,13 +112,5 @@ public class BoardConnectivityStepDefinitions
     public void AfterScenario()
     {
         _cancellationTokenSource.Cancel();
-        try
-        {
-            _announcementTask?.Wait(TimeSpan.FromSeconds(1));
-        }
-        catch (Exception)
-        {
-            // Ignore exceptions during teardown
-        }
     }
 }

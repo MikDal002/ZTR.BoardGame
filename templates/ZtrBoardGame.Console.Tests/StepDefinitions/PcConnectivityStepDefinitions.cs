@@ -1,100 +1,80 @@
-using AwesomeAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Reqnroll;
-using ZtrBoardGame.Console.Controllers;
+using Spectre.Console;
+using Spectre.Console.Testing;
+using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
-using Moq.Protected;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
 
 [Binding]
 public class PcConnectivityStepDefinitions
 {
-    private CustomWebApplicationFactory<HelloController> _webApplicationFactory;
-    private HttpClient _boardHttpClient;
-    private Mock<ILogger<HelloController>> _mockLogger;
-    private HttpResponseMessage _response;
-    private Mock<HttpMessageHandler> _mockHttpMessageHandler;
+    private CustomWebApplicationFactory<PcRunCommand> _pcServerFactory;
+    private IBoardStorage _boardStorage = new BoardStorage();
+    private IHelloService _helloService;
+    private TestConsole _pcConsole = new();
+    private TestConsole _boardConsole = new();
+    private CancellationTokenSource _cancellationTokenSource;
+    HttpClient _toPcHttpConnection;
 
     [BeforeScenario]
     public void BeforeScenario()
     {
-        _mockLogger = new Mock<ILogger<HelloController>>();
-        _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-        _webApplicationFactory = new CustomWebApplicationFactory<HelloController>();
-        _webApplicationFactory.ConfigureTestServices(services =>
+        _cancellationTokenSource = new();
+
+        _pcServerFactory = new("pc run");
+        _pcServerFactory.ConfigureTestServices(services =>
         {
-            services.AddSingleton(_mockLogger.Object);
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
-            mockHttpClientFactory.Setup(_ => _.CreateClient(It.IsAny<string>()))
-                .Returns(new HttpClient(_mockHttpMessageHandler.Object));
-            services.AddSingleton(mockHttpClientFactory.Object);
+            services.AddSingleton(_boardStorage);
+            services.AddSingleton<IAnsiConsole>(_pcConsole);
         });
     }
 
     [AfterScenario]
     public void AfterScenario()
     {
-        _webApplicationFactory.Dispose();
-        _boardHttpClient?.Dispose();
+        _pcServerFactory.Dispose();
+        _cancellationTokenSource.Cancel();
+
     }
 
     [Given(@"a board is configured with the PC server address")]
     public void GivenABoardIsConfiguredWithThePCServerAddress()
     {
-        // This step is implicitly handled by the test setup
+        _toPcHttpConnection = _pcServerFactory.CreateClient();
+
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        mockHttpClientFactory.Setup(f => f.CreateClient(BoardHttpClientConfigure.ToPcClientName))
+            .Returns(_toPcHttpConnection);
+        _helloService = new HelloService(mockHttpClientFactory.Object, NullLogger<HelloService>.Instance, _boardConsole,
+            new ServerAddressStorage() { ServerAddress = "http://dummy-address-for-test:55556" });
     }
 
     [Given(@"the PC server is running")]
-    public void GivenThePCServerIsRunning()
+    public static void GivenThePCServerIsRunning()
     {
-        _boardHttpClient = _webApplicationFactory.CreateClient();
     }
 
-    [When(@"the board sends a ""hello"" request to the PC from IP ""(.*)""")]
-    public async Task WhenTheBoardSendsAHelloRequestToThePCFromIP(string ipAddress)
+    [When(@"the board sends a ""hello"" request to the PC from it's IP")]
+    public async Task WhenTheBoardSendsAHelloRequestToThePCFromItsIP()
     {
-        _boardHttpClient.DefaultRequestHeaders.Add("X-Forwarded-For", ipAddress);
-        _response = await _boardHttpClient.PostAsync("/api/hello", null);
+        await _helloService.AnnouncePresenceAsync(CancellationToken.None);
     }
 
     [When(@"the PC receives the request")]
-    public void WhenThePCReceivesTheRequest()
+    public async Task WhenThePCReceivesTheRequest()
     {
-        _response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var async = await _toPcHttpConnection.GetAsync("api/boards");
+        var readAsStringAsync = await async.Content.ReadAsStringAsync();
+        readAsStringAsync.Should().Be(@"{""count"":1}");
     }
 
-    [Then(@"the PC's console log should contain an INFO message like ""(.*)""")]
-    public void ThenThePCsConsoleLogShouldContainAnINFOMessageLike(string expectedMessage)
+    [Then(@"the PC's console log should contain message like ""(.*)""")]
+    public void ThenThePCsConsoleLogShouldContainAnInfoMessageLike(string message)
     {
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(expectedMessage)),
-                It.IsAny<System.Exception>(),
-                It.IsAny<System.Func<It.IsAnyType, System.Exception, string>>()),
-            Times.Once);
-    }
-
-    [Then(@"the PC should immediately send a ""hello"" request back to ""(.*)""")]
-    public void ThenThePCShouldImmediatelySendAHelloRequestBackTo(string url)
-    {
-        _mockHttpMessageHandler.Protected().Verify(
-            "SendAsync",
-            Times.Exactly(1),
-            ItExpr.Is<HttpRequestMessage>(req =>
-                req.Method == HttpMethod.Post
-                && req.RequestUri == new System.Uri(url)
-            ),
-            ItExpr.IsAny<CancellationToken>()
-        );
+        _pcConsole.Lines.Should().Contain(message);
     }
 }

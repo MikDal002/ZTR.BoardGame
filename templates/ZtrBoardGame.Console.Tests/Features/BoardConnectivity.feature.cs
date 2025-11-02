@@ -145,7 +145,7 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
             }
             await this.ScenarioCleanupAsync();
         }
-
+        
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Board starts without a server address configuration")]
         public async global::System.Threading.Tasks.Task BoardStartsWithoutAServerAddressConfiguration()
