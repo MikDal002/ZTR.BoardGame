@@ -4,8 +4,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
+using Spectre.Console;
+using Spectre.Console.Testing;
 using System.Net;
 using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Commands.Board;
 
 namespace ZtrBoardGame.Console.Tests.StepDefinitions;
 
@@ -17,16 +20,22 @@ public class BoardConnectivityStepDefinitions
     private ManualResetEvent _requestReceivedEvent;
     private Mock<HttpMessageHandler> _httpMessageHandlerMock;
     private IHelloService _helloService;
+    private TestConsole _console;
+    ServiceProvider _serviceProvider;
 
     [BeforeScenario]
     public void BeforeScenario()
     {
         _services = new ServiceCollection();
-        _cancellationTokenSource = new CancellationTokenSource();
-        _requestReceivedEvent = new ManualResetEvent(false);
-        _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
+        _cancellationTokenSource = new();
+        _requestReceivedEvent = new(false);
+        _httpMessageHandlerMock = new();
+        _console = new();
 
         _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
+        _services.AddSingleton<IServerAddressProvider>(new ServerAddressStorage() { ServerAddress = "http://dummy-address-for-test" });
+        _services.AddSingleton<IHelloService, HelloService>();
+        _services.AddSingleton<IAnsiConsole>(_console);
     }
 
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
@@ -53,26 +62,50 @@ public class BoardConnectivityStepDefinitions
             })
             .Callback(() => _requestReceivedEvent.Set());
 
-        var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-        _services.AddSingleton(httpClient);
-        _services.AddSingleton<IHelloService, HelloService>();
+        _services.ConfigureHelloServiceHttpClient(_httpMessageHandlerMock.Object);
 
-        var serviceProvider = _services.BuildServiceProvider();
-        _helloService = serviceProvider.GetRequiredService<IHelloService>();
+        _serviceProvider = _services.BuildServiceProvider();
 
     }
 
     [Then(@"the application should run without startup errors")]
-    public static void ThenTheApplicationShouldRunWithoutStartupErrors()
+    public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
-        // This is implicitly tested by the other steps.
+        _helloService = _serviceProvider.GetRequiredService<IHelloService>();
+        var _announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
+
+        _announcementTask.Wait(TimeSpan.FromSeconds(1));
+        _announcementTask.IsFaulted.Should().BeFalse();
     }
 
     [Then(@"the board should begin its announcement cycle to ""(.*)""")]
     public void ThenTheBoardShouldBeginItsAnnouncementCycleTo(string _)
     {
-        Task.Run(() => _helloService.AnnouncePresence(_cancellationTokenSource.Token));
         _requestReceivedEvent.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
+    }
+
+    [Given(@"the board's configuration does not specify the PC server address")]
+    public void GivenTheBoardsConfigurationDoesNotSpecifyThePCServerAddress()
+    {
+        var networkSettings = new NetworkSettings { PcServerAddress = string.Empty };
+        _services.AddSingleton(Options.Create(networkSettings));
+    }
+
+    [Then(@"the application should fail to start")]
+    public async Task ThenTheApplicationShouldFailToStart()
+    {
+        var action = () =>
+        {
+            var helloService = _serviceProvider.GetRequiredService<IHelloService>();
+            return helloService.AnnouncePresenceAsync(CancellationToken.None);
+        };
+        await action.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Then(@"an error message ""(.*)"" should be displayed in the console")]
+    public void ThenAnErrorMessageShouldBeDisplayedInTheConsole(string errorMessage)
+    {
+        _console.Output.Should().Contain(errorMessage);
     }
 
     [AfterScenario]

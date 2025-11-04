@@ -22,6 +22,7 @@ on:
       - develop
       - main
       - master
+      - 'feature/*'
 
 jobs:
   windows-latest:

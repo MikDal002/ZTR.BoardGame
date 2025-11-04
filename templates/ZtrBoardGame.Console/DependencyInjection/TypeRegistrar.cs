@@ -1,10 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Net.Http;
 using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
@@ -13,9 +17,11 @@ public sealed class TypeRegistrar : ITypeRegistrar
 {
     private readonly IServiceCollection _services;
 
-    public TypeRegistrar(bool enableConsoleLogging)
+    public IReadOnlyCollection<ServiceDescriptor> GetCopyOfServices() => _services.ToImmutableList();
+
+    public TypeRegistrar(bool enableConsoleLogging, IServiceCollection? serviceCollection = null)
     {
-        _services = new ServiceCollection();
+        _services = serviceCollection ?? new ServiceCollection();
 
         // --- Configuration Setup ---
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
@@ -33,9 +39,13 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
         _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
         _services.Configure<NetworkSettings>(configuration.GetSection(nameof(NetworkSettings)));
+        _services.AddSingleton<IBoardStorage, BoardStorage>();
         _services.AddSingleton<IUpdateService, UpdateService>();
-        _services.AddSingleton<HttpClient>();
-        _services.AddSingleton<IHelloService, HelloService>();
+        _services.AddSingleton(AnsiConsole.Console);
+
+        _services.AddSingleton<TypeRegistrar>(this);
+
+        _services.ConfigureHelloServiceHttpClient();
     }
 
     public ITypeResolver Build() => new TypeResolver(_services.BuildServiceProvider());
