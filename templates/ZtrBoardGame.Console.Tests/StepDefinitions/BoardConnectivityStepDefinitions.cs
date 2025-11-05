@@ -23,6 +23,7 @@ public class BoardConnectivityStepDefinitions
     private TestConsole _console;
     ServiceProvider _serviceProvider;
 
+    #region Hooks
     [BeforeScenario]
     public void BeforeScenario()
     {
@@ -38,6 +39,14 @@ public class BoardConnectivityStepDefinitions
         _services.AddSingleton<IAnsiConsole>(_console);
     }
 
+    [AfterScenario]
+    public void AfterScenario()
+    {
+        _cancellationTokenSource.Cancel();
+    }
+    #endregion
+
+    #region Scenario: Board starts with a valid server address configuration
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
     public void GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs(string pcServerAddress)
     {
@@ -83,7 +92,9 @@ public class BoardConnectivityStepDefinitions
     {
         _requestReceivedEvent.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
     }
+    #endregion
 
+    #region Scenario: Board starts without a server address configuration
     [Given(@"the board's configuration does not specify the PC server address")]
     public void GivenTheBoardsConfigurationDoesNotSpecifyThePCServerAddress()
     {
@@ -107,10 +118,49 @@ public class BoardConnectivityStepDefinitions
     {
         _console.Output.Should().Contain(errorMessage);
     }
+    #endregion
 
-    [AfterScenario]
-    public void AfterScenario()
+    #region Scenario: A board fails to connect to the PC server
+    [Given(@"a board is configured with the PC server address")]
+    public void GivenABoardIsConfiguredWithThePCServerAddress()
     {
-        _cancellationTokenSource.Cancel();
+        GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs("http://localhost:12345");
     }
+
+    [Given(@"the PC server is not reachable")]
+    public void GivenThePCServerIsNotReachable()
+    {
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ThrowsAsync(new HttpRequestException("Connection refused"));
+    }
+
+    [When(@"the board attempts to send a ""(.*)"" request")]
+    public void WhenTheBoardAttemptsToSendARequest(string _)
+    {
+        _services.ConfigureHelloServiceHttpClient(_httpMessageHandlerMock.Object);
+        _serviceProvider = _services.BuildServiceProvider();
+    }
+
+    [Then(@"the board's local console log should contain an ERROR message with a reason, such as ""(.*)"" or ""(.*)""")]
+    public async Task ThenTheBoardsLocalConsoleLogShouldContainAnERRORMessageWithAReasonSuchAsOr(string expectedErrorMessage1, string expectedErrorMessage2)
+    {
+        var helloService = _serviceProvider.GetRequiredService<IHelloService>();
+        try
+        {
+            await helloService.AnnouncePresenceAsync(CancellationToken.None);
+        }
+        catch
+        {
+            //  ignored
+        }
+
+        _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
+    }
+    #endregion
 }
