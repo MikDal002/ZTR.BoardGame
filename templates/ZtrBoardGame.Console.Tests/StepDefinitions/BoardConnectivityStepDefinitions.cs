@@ -108,6 +108,48 @@ public class BoardConnectivityStepDefinitions
         _console.Output.Should().Contain(errorMessage);
     }
 
+    [Given(@"a board is configured with the PC server address")]
+    public void GivenABoardIsConfiguredWithThePCServerAddress()
+    {
+        GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs("http://localhost:12345");
+    }
+
+    [Given(@"the PC server is not reachable")]
+    public void GivenThePCServerIsNotReachable()
+    {
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ThrowsAsync(new HttpRequestException("Connection refused"));
+    }
+
+    [When(@"the board attempts to send a ""(.*)"" request")]
+    public void WhenTheBoardAttemptsToSendARequest(string _)
+    {
+        _services.ConfigureHelloServiceHttpClient(_httpMessageHandlerMock.Object);
+        _serviceProvider = _services.BuildServiceProvider();
+    }
+
+    [Then(@"the board's local console log should contain an ERROR message with a reason, such as ""(.*)"" or ""(.*)""")]
+    public async Task ThenTheBoardsLocalConsoleLogShouldContainAnERRORMessageWithAReasonSuchAsOr(string expectedErrorMessage1, string expectedErrorMessage2)
+    {
+        var helloService = _serviceProvider.GetRequiredService<IHelloService>();
+        try
+        {
+            await helloService.AnnouncePresenceAsync(CancellationToken.None);
+        }
+        catch
+        {
+            //  ignored
+        }
+
+        _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
+    }
+
     [AfterScenario]
     public void AfterScenario()
     {

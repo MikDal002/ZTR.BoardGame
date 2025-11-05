@@ -59,7 +59,7 @@ public class HelloService(IHttpClientFactory httpClientFactory, ILogger<HelloSer
             }
             catch (HttpRequestException e)
             {
-                console.MarkupLine($"[red]Cannot connect to the server {httpClientBaseAddress}[/]");
+                console.MarkupLine($"[red]Cannot connect to the server {httpClientBaseAddress}. Reason: {e.Message}[/]");
                 logger.LogError(e, "Failed to announce presence to PC server");
 
                 prevException = e;
