@@ -129,7 +129,7 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
             {
                 await this.ScenarioStartAsync();
 #line 4
-    await testRunner.GivenAsync("a board is configured with the PC server address", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("a board is configured to connect to a running PC server", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 5
     await testRunner.AndAsync("the PC server is running", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");

@@ -41,8 +41,8 @@ public class PcConnectivityStepDefinitions
 
     }
 
-    [Given(@"a board is configured with the PC server address")]
-    public void GivenABoardIsConfiguredWithThePCServerAddress()
+    [Given(@"a board is configured to connect to a running PC server")]
+    public void GivenABoardIsConfiguredToConnectToARunningPCServer()
     {
         _toPcHttpConnection = _pcServerFactory.CreateClient();
 
