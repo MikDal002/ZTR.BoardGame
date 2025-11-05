@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 
@@ -7,6 +8,7 @@ public interface IBoardStorage
 {
     void Add(Uri boardIpAddress);
     int Count { get; }
+    IEnumerable<Uri> GetAddresses();
 }
 
 public class BoardStorage : IBoardStorage
@@ -17,4 +19,5 @@ public class BoardStorage : IBoardStorage
         => _connectedBoards.TryAdd(boardIpAddress, (byte)0);
 
     public int Count => _connectedBoards.Count;
+    public IEnumerable<Uri> GetAddresses() => _connectedBoards.Keys;
 }

@@ -31,6 +31,7 @@ public class PcRunCommand(IBoardStorage boardStorage) : CancellableAsyncCommand<
             builder.Services.AddControllers();
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton(boardStorage);
+            builder.Services.AddHostedService<BoardConnectorService>();
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
