@@ -23,6 +23,7 @@ public class BoardConnectivityStepDefinitions
     private TestConsole _console;
     ServiceProvider _serviceProvider;
 
+    #region Hooks
     [BeforeScenario]
     public void BeforeScenario()
     {
@@ -38,6 +39,14 @@ public class BoardConnectivityStepDefinitions
         _services.AddSingleton<IAnsiConsole>(_console);
     }
 
+    [AfterScenario]
+    public void AfterScenario()
+    {
+        _cancellationTokenSource.Cancel();
+    }
+    #endregion
+
+    #region Scenario: Board starts with a valid server address configuration
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
     public void GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs(string pcServerAddress)
     {
@@ -83,7 +92,9 @@ public class BoardConnectivityStepDefinitions
     {
         _requestReceivedEvent.WaitOne(TimeSpan.FromSeconds(5)).Should().BeTrue();
     }
+    #endregion
 
+    #region Scenario: Board starts without a server address configuration
     [Given(@"the board's configuration does not specify the PC server address")]
     public void GivenTheBoardsConfigurationDoesNotSpecifyThePCServerAddress()
     {
@@ -107,7 +118,9 @@ public class BoardConnectivityStepDefinitions
     {
         _console.Output.Should().Contain(errorMessage);
     }
+    #endregion
 
+    #region Scenario: A board fails to connect to the PC server
     [Given(@"a board is configured with the PC server address")]
     public void GivenABoardIsConfiguredWithThePCServerAddress()
     {
@@ -149,10 +162,5 @@ public class BoardConnectivityStepDefinitions
 
         _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
     }
-
-    [AfterScenario]
-    public void AfterScenario()
-    {
-        _cancellationTokenSource.Cancel();
-    }
+    #endregion
 }
