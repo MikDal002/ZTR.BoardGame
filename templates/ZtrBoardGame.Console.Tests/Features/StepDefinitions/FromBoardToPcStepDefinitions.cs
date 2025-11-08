@@ -10,10 +10,10 @@ using System.Net;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 
-namespace ZtrBoardGame.Console.Tests.StepDefinitions;
+namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
 [Binding]
-public class BoardConnectivityStepDefinitions
+public class FromBoardToPcStepDefinitions
 {
     private IServiceCollection _services;
     private CancellationTokenSource _cancellationTokenSource;
