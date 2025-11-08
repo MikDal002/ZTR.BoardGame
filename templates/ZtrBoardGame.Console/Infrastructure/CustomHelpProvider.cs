@@ -8,13 +8,8 @@ using ZtrBoardGame.Console.Commands.Base;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
-public class CustomHelpProvider : HelpProvider
+public class CustomHelpProvider(ICommandAppSettings settings) : HelpProvider(settings)
 {
-    public CustomHelpProvider(ICommandAppSettings settings)
-        : base(settings)
-    {
-    }
-
     public override IEnumerable<IRenderable> Write(ICommandModel model, ICommandInfo? command)
     {
         var elements = base.Write(model, command).ToList();
