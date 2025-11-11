@@ -10,10 +10,10 @@ using System.Net;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 
-namespace ZtrBoardGame.Console.Tests.StepDefinitions;
+namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
-[Binding]
-public class BoardConnectivityStepDefinitions
+[Binding, Scope(Feature = "From Board To Pc Connection")]
+public class FromBoardToPcStepDefinitions
 {
     private IServiceCollection _services;
     private CancellationTokenSource _cancellationTokenSource;
@@ -72,7 +72,6 @@ public class BoardConnectivityStepDefinitions
             .Callback(() => _requestReceivedEvent.Set());
 
         _services.ConfigureHelloServiceHttpClient(_httpMessageHandlerMock.Object);
-
         _serviceProvider = _services.BuildServiceProvider();
 
     }
@@ -151,14 +150,8 @@ public class BoardConnectivityStepDefinitions
     public async Task ThenTheBoardsLocalConsoleLogShouldContainAnERRORMessageWithAReasonSuchAsOr(string expectedErrorMessage1, string expectedErrorMessage2)
     {
         var helloService = _serviceProvider.GetRequiredService<IHelloService>();
-        try
-        {
-            await helloService.AnnouncePresenceAsync(CancellationToken.None);
-        }
-        catch
-        {
-            //  ignored
-        }
+        var action = async () => await helloService.AnnouncePresenceAsync(CancellationToken.None);
+        await action.Should().ThrowAsync<TimeoutException>();
 
         _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
     }

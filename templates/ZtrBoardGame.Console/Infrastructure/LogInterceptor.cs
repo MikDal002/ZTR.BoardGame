@@ -8,23 +8,17 @@ using System.Reflection;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
-public sealed class LogInterceptor : ICommandInterceptor
+public sealed class LogInterceptor(ILogger<LogInterceptor> logger) : ICommandInterceptor
 {
-    private readonly ILogger<LogInterceptor> _logger;
     private Stopwatch? _stopwatch;
     private const string SecretMask = "[SECRET]";
-
-    public LogInterceptor(ILogger<LogInterceptor> logger)
-    {
-        _logger = logger;
-    }
 
     public void Intercept(CommandContext context, CommandSettings? settings)
     {
         _stopwatch = Stopwatch.StartNew();
 
         var sanitizedSettings = SanitizeSettings(settings);
-        _logger.LogInformation("Starting execution of command: {CommandName} with settings: {@CommandSettings}",
+        logger.LogInformation("Starting execution of command: {CommandName} with settings: {@CommandSettings}",
             context.Name,
             sanitizedSettings);
     }
@@ -32,7 +26,7 @@ public sealed class LogInterceptor : ICommandInterceptor
     public void InterceptResult(CommandContext context, CommandSettings settings, ref int result)
     {
         _stopwatch?.Stop();
-        _logger.LogInformation(
+        logger.LogInformation(
             "Finished execution of command: {CommandName} with result code: {ResultCode}. Duration: {ElapsedDuration}.",
             context.Name,
             result,

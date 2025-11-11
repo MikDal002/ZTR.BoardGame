@@ -8,24 +8,14 @@ namespace ZtrBoardGame.Console.Commands.PC;
 
 [ApiController]
 [Route("api/boards")]
-public class BoardsController : ControllerBase
+public class BoardsController(ILogger<BoardsController> logger, IBoardStorage boardStorage, IAnsiConsole console)
+    : ControllerBase
 {
-    private readonly ILogger<BoardsController> _logger;
-    private readonly IBoardStorage _boardStorage;
-    private readonly IAnsiConsole _console;
-
-    public BoardsController(ILogger<BoardsController> logger, IBoardStorage boardStorage, IAnsiConsole console)
-    {
-        _logger = logger;
-        _boardStorage = boardStorage;
-        _console = console;
-    }
-
     public record GetBoardsOutDto(int Count);
     [HttpGet]
     public ActionResult<GetBoardsOutDto> Get()
     {
-        return new GetBoardsOutDto(_boardStorage.Count);
+        return new GetBoardsOutDto(boardStorage.Count);
     }
 
     [HttpPost]
@@ -39,20 +29,20 @@ public class BoardsController : ControllerBase
     //
     public IActionResult Post([FromQuery] string responseAddress)
     {
-        var boardIpAddress = new Uri(responseAddress);
-
-        var _ = _logger.BeginScopeWith(("BoardIpAddress", boardIpAddress.ToString()));
-
-        if (boardIpAddress is null)
+        if (string.IsNullOrWhiteSpace(responseAddress))
         {
-            _logger.LogWarning("Request received without a remote IP address.");
+            logger.LogWarning("Request received without a remote IP address.");
             return BadRequest("Could not determine remote IP address.");
         }
 
-        _logger.LogInformation("Received hello from board");
-        _console.MarkupLine("Received hello from board");
+        var boardIpAddress = new Uri(responseAddress);
 
-        _boardStorage.Add(boardIpAddress);
+        var _ = logger.BeginScopeWith(("BoardIpAddress", boardIpAddress.ToString()));
+
+        logger.LogInformation("Received hello from board");
+        console.MarkupLine("Received hello from board");
+
+        boardStorage.Add(boardIpAddress);
         return Ok();
     }
 }
