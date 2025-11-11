@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11201.2 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Console", "templates\ZtrBoardGame.Console\ZtrBoardGame.Console.csproj", "{77400277-5ED7-4A62-B65D-0047CC21A158}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Console", "src\ZtrBoardGame.Console\ZtrBoardGame.Console.csproj", "{77400277-5ED7-4A62-B65D-0047CC21A158}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementy rozwiązania", "Elementy rozwiązania", "{547C3E3A-982D-4569-8732-80FA106798B4}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,11 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementy rozwiązania", "El
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{447A1CBF-6F89-4C07-B4B1-F99C476ADCB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Configuration.Shared", "templates\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj", "{1DBB14EB-3533-494A-842C-3DB1EF3D2917}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Configuration.Shared", "src\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj", "{1DBB14EB-3533-494A-842C-3DB1EF3D2917}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Console.Tests", "templates\ZtrBoardGame.Console.Tests\ZtrBoardGame.Console.Tests.csproj", "{BF2F9CF3-FADF-4314-AEF8-E5727CE6A2FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.Console.Tests", "tests\ZtrBoardGame.Console.Tests\ZtrBoardGame.Console.Tests.csproj", "{BF2F9CF3-FADF-4314-AEF8-E5727CE6A2FA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{82DE6FA7-D07F-4EC4-822B-9234CE88B31E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{82DE6FA7-D07F-4EC4-822B-9234CE88B31E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{34591388-3F0B-4DD1-85B4-A523A6D23418}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{77400277-5ED7-4A62-B65D-0047CC21A158} = {82DE6FA7-D07F-4EC4-822B-9234CE88B31E}
 		{1DBB14EB-3533-494A-842C-3DB1EF3D2917} = {82DE6FA7-D07F-4EC4-822B-9234CE88B31E}
-		{BF2F9CF3-FADF-4314-AEF8-E5727CE6A2FA} = {82DE6FA7-D07F-4EC4-822B-9234CE88B31E}
+		{BF2F9CF3-FADF-4314-AEF8-E5727CE6A2FA} = {34591388-3F0B-4DD1-85B4-A523A6D23418}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7F5B8468-A485-43F0-83B9-3AC2056CBEDA}
 	EndGlobalSection
 EndGlobal
