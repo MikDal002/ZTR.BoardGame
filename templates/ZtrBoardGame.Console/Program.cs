@@ -1,52 +1,43 @@
 using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Linq;
 using System.Threading.Tasks;
 using Velopack;
-using ZtrBoardGame.Console.Commands.Base; // Added for GlobalCommandSettings
-using ZtrBoardGame.Console.Commands.Connectivity;
+using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console;
 
-class Program
+public class Program
 {
-    static async Task Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        // Update the application
         VelopackApp.Build().Run();
 
-        // Get the log console option name dynamically
-        var logConsoleOption = CommandOptionExtensions.GetLongOptionName<GlobalCommandSettings, bool>(s => s.LogToConsole);
-        var enableConsoleLogging = false;
-        if (!string.IsNullOrEmpty(logConsoleOption))
-        {
-            enableConsoleLogging = args.Contains(logConsoleOption);
-        }
-        else
-        {
-            System.Console.Error.WriteLine("[Warning] Could not dynamically retrieve --log-console option name. Console logging may not be enabled as expected.");
-        }
+        var (processedArgs, enableConsoleLogging) = args.ProcessGlobalOptions();
 
-        // Set up the command app
-        var app = new CommandApp(new TypeRegistrar(enableConsoleLogging));
+        var typeRegistrar = new TypeRegistrar(enableConsoleLogging);
+        var app = new CommandApp(typeRegistrar);
 
-        // Register commands
         app.Configure(config =>
         {
 #if DEBUG
             config.ValidateExamples();
+            config.PropagateExceptions();
 #endif
-
             config.SetApplicationName("ZtrBoardGame.Console");
             config.SetHelpProvider(new CustomHelpProvider(config.Settings));
 
             config.AddCommand<ExampleCommand>("commandName");
             config.AddBranch("board", board =>
             {
-                board.AddCommand<BoardCommand>("run");
+                board.AddCommand<BoardRunCommand>("run");
+            });
+            config.AddBranch("pc", pc =>
+            {
+                pc.AddCommand<PcRunCommand>("run");
             });
             config.AddCommand<UpdateCommand>("version")
                 .WithExample("version", "--update");
@@ -60,6 +51,6 @@ class Program
 
         });
 
-        await app.RunAsync(args);
+        await app.RunAsync(processedArgs);
     }
 }

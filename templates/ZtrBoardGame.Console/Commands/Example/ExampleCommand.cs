@@ -27,21 +27,14 @@ public class ExampleSettings : CommandSettings
     public string? ApiKey { get; set; }
 }
 
-public class ExampleCommand : CancellableAsyncCommand<ExampleSettings>
+public class ExampleCommand(ILogger<ExampleCommand> logger) : CancellableAsyncCommand<ExampleSettings>
 {
-    private readonly ILogger<ExampleCommand> _logger;
-
-    public ExampleCommand(ILogger<ExampleCommand> logger)
-    {
-        _logger = logger;
-    }
-
     public override Task<int> ExecuteAsync(CommandContext context, ExampleSettings settings, CancellationToken cancellationToken)
     {
         // The LogInterceptor will log settings.ApiKey as [SECRET]
         // This command-specific log now also benefits from that if settings were logged here directly,
         // but the primary sanitization happens in the interceptor.
-        _logger.LogInformation("Processing ExampleCommand with Limit: {Limit}, Directory: {Directory}, and ApiKey (status): {ApiKeyStatus}",
+        logger.LogInformation("Processing ExampleCommand with Limit: {Limit}, Directory: {Directory}, and ApiKey (status): {ApiKeyStatus}",
             settings.Limit,
             settings.Directory?.FullName ?? "Not specified",
             string.IsNullOrEmpty(settings.ApiKey) ? "Not provided" : "Provided");
@@ -57,7 +50,7 @@ public class ExampleCommand : CancellableAsyncCommand<ExampleSettings>
 
         if (settings.Directory != null && !settings.Directory.Exists)
         {
-            _logger.LogWarning("The specified directory {DirectoryPath} does not exist.", settings.Directory.FullName);
+            logger.LogWarning("The specified directory {DirectoryPath} does not exist.", settings.Directory.FullName);
         }
 
         return Task.FromResult(0);

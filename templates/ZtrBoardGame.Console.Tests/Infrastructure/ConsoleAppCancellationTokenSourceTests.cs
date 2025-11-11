@@ -5,19 +5,17 @@ namespace ZtrBoardGame.Console.Tests.Infrastructure;
 [TestFixture]
 public class ConsoleAppCancellationTokenSourceTests
 {
-    private ConsoleAppCancellationTokenSource _sut = null!; // System Under Test
+    private ConsoleAppCancellationTokenSource _sut = null!;
 
     [SetUp]
     public void Setup()
     {
-        // Create a new instance before each test
-        _sut = new ConsoleAppCancellationTokenSource();
+        _sut = new();
     }
 
     [TearDown]
     public void Teardown()
     {
-        // Ensure disposal after each test
         _sut?.Dispose();
     }
 
@@ -37,14 +35,14 @@ public class ConsoleAppCancellationTokenSourceTests
     {
         // Arrange
         var token = _sut.Token;
-        token.IsCancellationRequested.Should().BeFalse(); // Pre-condition
+        token.IsCancellationRequested.Should().BeFalse();
 
         // Act
         _sut.Dispose();
 
         // Assert
         // Give a brief moment for potential background operations triggered by Dispose/Cancel
-        Thread.Sleep(50); // Small delay might be needed depending on thread scheduling
+        Thread.Sleep(50);
         token.IsCancellationRequested.Should().BeTrue();
     }
 

@@ -9,4 +9,9 @@ public class GlobalCommandSettings : CommandSettings
     [Description("Enables logging to the console.")]
     [DefaultValue(false)]
     public bool LogToConsole { get; set; }
+
+    [CommandOption("--testCommandName", IsHidden = true)]
+    [Description("The name of the command to be executed.")]
+
+    public string? TestCommandName { get; set; }
 }

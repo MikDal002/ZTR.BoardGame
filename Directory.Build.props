@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <LangVersion>12</LangVersion>
+        <LangVersion>latest</LangVersion>
         <TargetFramework>net9.0</TargetFramework>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <!-- Required by code style rules to be in power. Such a funny thing about .Net :D -->
