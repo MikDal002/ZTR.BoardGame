@@ -1,11 +1,13 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Spectre.Console;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console.Commands.Board;
@@ -15,7 +17,7 @@ public interface IHelloService
     Task AnnouncePresenceAsync(CancellationToken cancellationToken);
 }
 
-public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole console, IServerAddressProvider serverAddressProvider, ILogger<HelloService> logger)
+public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider, ILogger<HelloService> logger)
     : IHelloService, IHostedService
 {
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
@@ -29,13 +31,13 @@ public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole con
 
         await ResilienceHelper.InvokeWithRetryAsync(async () =>
         {
-            if (string.IsNullOrWhiteSpace(serverAddressProvider.ServerAddress))
+            if (string.IsNullOrWhiteSpace(serverAddressProvider.Value.BoardAddress))
             {
                 logger.LogWarning("Local server address is not set. Cannot announce presence to PC server.");
                 throw new InvalidOperationException("Local server address is not set");
             }
 
-            var urlEncode = WebUtility.UrlEncode(serverAddressProvider.ServerAddress);
+            var urlEncode = WebUtility.UrlEncode(serverAddressProvider.Value.BoardAddress);
             var response = await httpClient.PostAsync($"/api/boards?responseAddress={urlEncode}", null, cancellationToken);
             response.EnsureSuccessStatusCode();
             console.MarkupLine($"[green]Connected to the server[/]");

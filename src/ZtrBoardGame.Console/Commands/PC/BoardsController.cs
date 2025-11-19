@@ -8,7 +8,7 @@ namespace ZtrBoardGame.Console.Commands.PC;
 
 [ApiController]
 [Route("api/boards")]
-public class BoardsController(ILogger<BoardsController> logger, IBoardStorage boardStorage, IAnsiConsole console)
+public class BoardsController(IBoardStorage boardStorage, IAnsiConsole console, ILogger<BoardsController> logger)
     : ControllerBase
 {
     public record GetBoardsOutDto(int Count);

@@ -7,7 +7,7 @@ using Nuke.Common.CI.GitHubActions;
     },
     PublishArtifacts = false,
     FetchDepth = 0,
-    InvokedTargets = new[] { nameof(Tests) },
+    InvokedTargets = new[] { nameof(UnitTests) },
     CacheKeyFiles = new[] { "**/global.json", "**/*.csproj" },
     CacheIncludePatterns = new[] { ".nuke/temp", "~/.nuget/packages" },
     EnableGitHubToken = true

@@ -9,7 +9,7 @@ using Nuke.Common.Utilities;
     OnPushBranches = new[] { MasterBranch, MainBranch, DevelopBranch },
     PublishArtifacts = true,
     FetchDepth = 0,
-    InvokedTargets = new[] { nameof(Tests), nameof(PublishToGitHubWithVelopack) },
+    InvokedTargets = new[] { nameof(UnitTests), nameof(PublishToGitHubWithVelopack) },
     CacheKeyFiles = new[] { "**/global.json", "**/*.csproj" },
     CacheIncludePatterns = new[] { ".nuke/temp", "~/.nuget/packages" },
     EnableGitHubToken = true

@@ -34,7 +34,6 @@ public class FromBoardToPcStepDefinitions
         _console = new();
 
         _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
-        _services.AddSingleton<IServerAddressProvider>(new ServerAddressStorage() { ServerAddress = "http://dummy-address-for-test" });
         _services.AddSingleton<IHelloService, HelloService>();
         _services.AddSingleton<IAnsiConsole>(_console);
     }
@@ -50,7 +49,11 @@ public class FromBoardToPcStepDefinitions
     [Given(@"the board's configuration specifies the PC server address as ""(.*)""")]
     public void GivenTheBoardsConfigurationSpecifiesThePCServerAddressAs(string pcServerAddress)
     {
-        var networkSettings = new NetworkSettings { PcServerAddress = pcServerAddress };
+        var networkSettings = new BoardNetworkSettings
+        {
+            PcServerAddress = pcServerAddress,
+            BoardAddress = "http://dummy-address-for-test"
+        };
         _services.AddSingleton(Options.Create(networkSettings));
     }
 
@@ -97,7 +100,7 @@ public class FromBoardToPcStepDefinitions
     [Given(@"the board's configuration does not specify the PC server address")]
     public void GivenTheBoardsConfigurationDoesNotSpecifyThePCServerAddress()
     {
-        var networkSettings = new NetworkSettings { PcServerAddress = string.Empty };
+        var networkSettings = new BoardNetworkSettings { PcServerAddress = string.Empty };
         _services.AddSingleton(Options.Create(networkSettings));
     }
 

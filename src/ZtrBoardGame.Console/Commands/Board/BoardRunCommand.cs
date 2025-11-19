@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console.Cli;
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,10 +46,6 @@ public class BoardRunCommand : CancellableAsyncCommand<BoardRunSettings>
             builder.Services.Add(copyOfService);
         }
 
-        var serverAddressStorage = new ServerAddressStorage();
-        builder.Services.AddSingleton<IServerAddressProvider>(serverAddressStorage);
-        builder.Services.AddSingleton<IServerAddressSetter>(serverAddressStorage);
-
         builder.Services.AddSingleton<IHostedService, HelloService>();
         builder.Services.AddControllers();
         builder.Services.AddHttpClient();
@@ -61,13 +54,6 @@ public class BoardRunCommand : CancellableAsyncCommand<BoardRunSettings>
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
         var app = builder.Build();
-        app.Lifetime.ApplicationStarted.Register(() =>
-        {
-            var requiredService = app.Services.GetRequiredService<IServer>();
-            var serverAddressesFeature = requiredService.Features.Get<IServerAddressesFeature>();
-            var serverAddressSetter = app.Services.GetRequiredService<IServerAddressSetter>();
-            serverAddressSetter.ServerAddress = serverAddressesFeature?.Addresses.FirstOrDefault() ?? throw new InvalidOperationException("There is no address...");
-        });
 
         app.UseForwardedHeaders();
         app.MapControllers();

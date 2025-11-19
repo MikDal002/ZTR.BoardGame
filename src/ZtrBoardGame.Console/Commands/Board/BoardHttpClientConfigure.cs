@@ -15,7 +15,7 @@ public static class BoardHttpClientConfigure
     {
         var httpClientBuilder = services.AddHttpClient(ToPcClientName, (serviceProvider, client) =>
         {
-            var networkSettings = serviceProvider.GetRequiredService<IOptions<NetworkSettings>>().Value;
+            var networkSettings = serviceProvider.GetRequiredService<IOptions<BoardNetworkSettings>>().Value;
             var console = serviceProvider.GetRequiredService<IAnsiConsole>();
 
             if (string.IsNullOrEmpty(networkSettings.PcServerAddress))
