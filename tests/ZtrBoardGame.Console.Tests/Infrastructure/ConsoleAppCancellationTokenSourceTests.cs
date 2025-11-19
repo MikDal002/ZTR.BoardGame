@@ -31,7 +31,7 @@ public class ConsoleAppCancellationTokenSourceTests
     }
 
     [Test]
-    public void Dispose_ShouldCancelTheToken()
+    public async Task Dispose_ShouldCancelTheToken()
     {
         // Arrange
         var token = _sut.Token;
@@ -42,7 +42,7 @@ public class ConsoleAppCancellationTokenSourceTests
 
         // Assert
         // Give a brief moment for potential background operations triggered by Dispose/Cancel
-        Thread.Sleep(50);
+        await Task.Delay(50);
         token.IsCancellationRequested.Should().BeTrue();
     }
 

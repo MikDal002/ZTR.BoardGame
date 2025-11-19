@@ -32,7 +32,6 @@ public static class ResilienceHelper
             catch (TaskCanceledException e)
             {
                 logger.LogInformation(e, "{Operation} task was canceled.", settings.OperationName);
-                prevException = e;
                 break;
             }
             catch (Exception e)

@@ -1,6 +1,7 @@
 namespace ZtrBoardGame.Configuration.Shared;
 
-public class NetworkSettings
+public class BoardNetworkSettings
 {
     public string PcServerAddress { get; set; }
+    public string BoardAddress { get; set; }
 }

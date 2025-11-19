@@ -30,18 +30,20 @@ public sealed class TypeRegistrar : ITypeRegistrar
             // IF file doesn't exists run _build project first.
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
             .Build();
 
         _services.AddSingleton<IConfiguration>(configuration);
 
-        LoggerSetup.ConfigureSerilog(_services, configuration, enableConsoleLogging); // Call the new static method
+        LoggerSetup.ConfigureSerilog(_services, configuration, enableConsoleLogging);
         _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
 
         _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
-        _services.Configure<NetworkSettings>(configuration.GetSection(nameof(NetworkSettings)));
+        _services.Configure<BoardNetworkSettings>(configuration.GetSection(nameof(BoardNetworkSettings)));
         _services.AddSingleton<IBoardStorage, BoardStorage>();
         _services.AddSingleton<IUpdateService, UpdateService>();
         _services.AddSingleton(AnsiConsole.Console);
+        _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
 
         _services.AddSingleton<TypeRegistrar>(this);
 

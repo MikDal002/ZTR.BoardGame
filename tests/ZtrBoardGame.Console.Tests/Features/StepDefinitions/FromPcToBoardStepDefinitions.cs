@@ -1,9 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Spectre.Console;
 using Spectre.Console.Testing;
+using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
@@ -15,10 +17,10 @@ public class FromPcToBoardStepDefinitions
 {
     private CustomWebApplicationFactory<PcRunCommand> _pcServerFactory;
     private CustomWebApplicationFactory<BoardRunCommand> _boardServerFactory;
-    private IBoardStorage _boardStorage = new BoardStorage();
+    private readonly IBoardStorage _boardStorage = new BoardStorage();
     private IHelloService _helloService;
-    private TestConsole _pcConsole = new();
-    private TestConsole _boardConsole = new();
+    private readonly TestConsole _pcConsole = new();
+    private readonly TestConsole _boardConsole = new();
     private CancellationTokenSource _cancellationTokenSource;
     HttpClient _toPcHttpConnection;
     Mock<IHttpClientFactory> _mockHttpClientFactory;
@@ -54,6 +56,7 @@ public class FromPcToBoardStepDefinitions
     [Given(@"the PC server is running")]
     public static void GivenThePCServerIsRunning()
     {
+        // This is done in another step
     }
     #endregion
 
@@ -66,8 +69,10 @@ public class FromPcToBoardStepDefinitions
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
         mockHttpClientFactory.Setup(f => f.CreateClient(BoardHttpClientConfigure.ToPcClientName))
             .Returns(_toPcHttpConnection);
-        _helloService = new HelloService(mockHttpClientFactory.Object, _boardConsole,
-            new ServerAddressStorage() { ServerAddress = "http://dummy-address-for-test:55556" }, NullLogger<HelloService>.Instance);
+        _helloService = new HelloService(mockHttpClientFactory.Object,
+            _boardConsole,
+           Options.Create(new BoardNetworkSettings() { BoardAddress = "http://dummy-address-for-test:55556" }),
+            NullLogger<HelloService>.Instance);
     }
 
     [When(@"the board sends a ""hello"" request to the PC from it's IP")]
@@ -79,8 +84,8 @@ public class FromPcToBoardStepDefinitions
     [When(@"the PC receives the request")]
     public async Task WhenThePCReceivesTheRequest()
     {
-        var async = await _toPcHttpConnection.GetAsync("api/boards");
-        var readAsStringAsync = await async.Content.ReadAsStringAsync();
+        var boardsResponse = await _toPcHttpConnection.GetAsync("api/boards");
+        var readAsStringAsync = await boardsResponse.Content.ReadAsStringAsync();
         readAsStringAsync.Should().Be(@"{""count"":1}");
     }
 
