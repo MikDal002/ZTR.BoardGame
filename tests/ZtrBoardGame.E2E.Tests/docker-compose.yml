@@ -1,7 +1,7 @@
 services:
   pc-server:
     build: ../../
-    command: pc run
+    command: pc run --non-interactive
     ports:
       - "${PC_SERVER_PORT}:${PC_SERVER_PORT}"
     environment:

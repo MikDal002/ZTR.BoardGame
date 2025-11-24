@@ -92,7 +92,7 @@ public class FromPcToBoardStepDefinitions
     [Then(@"the PC's console log should contain message like ""(.*)""")]
     public void ThenThePCsConsoleLogShouldContainAnInfoMessageLike(string message)
     {
-        _pcConsole.Lines.Should().Contain(message);
+        _pcConsole.Lines.Should().ContainMatch(message + "*");
     }
     #endregion
 

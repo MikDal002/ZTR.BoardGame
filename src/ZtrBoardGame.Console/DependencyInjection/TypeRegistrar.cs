@@ -44,6 +44,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<IUpdateService, UpdateService>();
         _services.AddSingleton(AnsiConsole.Console);
         _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
+        _services.AddSingleton<IGameService, GameService>();
 
         _services.AddSingleton<TypeRegistrar>(this);
 

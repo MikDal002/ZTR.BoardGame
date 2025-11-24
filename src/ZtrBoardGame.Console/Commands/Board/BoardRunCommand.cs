@@ -15,15 +15,8 @@ public class BoardRunSettings : CommandSettings
 {
 }
 
-public class BoardRunCommand : CancellableAsyncCommand<BoardRunSettings>
+public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncCommand<BoardRunSettings>
 {
-    readonly TypeRegistrar _typeRegistrar;
-
-    public BoardRunCommand(TypeRegistrar typeRegistrar)
-    {
-        _typeRegistrar = typeRegistrar;
-    }
-
     public override async Task<int> ExecuteAsync(CommandContext context, BoardRunSettings runSettings, CancellationToken cancellationToken)
     {
         try
@@ -41,12 +34,14 @@ public class BoardRunCommand : CancellableAsyncCommand<BoardRunSettings>
     async Task<int> RunWebServer(CommandContext context, CancellationToken cancellationToken)
     {
         var builder = WebApplication.CreateBuilder(context.Arguments.ToArray());
-        foreach (var copyOfService in _typeRegistrar.GetCopyOfServices())
+        foreach (var copyOfService in typeRegistrar.GetCopyOfServices())
         {
             builder.Services.Add(copyOfService);
         }
 
         builder.Services.AddSingleton<IHostedService, HelloService>();
+        builder.Services.AddSingleton<IHostedService, BoardGameService>();
+        builder.Services.AddSingleton<IBoardGameStatusStorage, BoardGameStatusStorage>();
         builder.Services.AddControllers();
         builder.Services.AddHttpClient();
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
