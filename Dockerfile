@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN dotnet tool install Nuke.GlobalTool --global
+RUN dotnet tool install Nuke.GlobalTool --global --version 9.0.4 
 RUN export PATH="$PATH:/root/.dotnet/tools" && nuke Publish --configuration Release --skip UnitTests E2ETests Format
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
