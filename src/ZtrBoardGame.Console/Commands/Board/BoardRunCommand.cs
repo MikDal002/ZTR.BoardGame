@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
 using ZtrBoardGame.Console.DependencyInjection;
+using ZtrBoardGame.RaspberryPi;
 
 namespace ZtrBoardGame.Console.Commands.Board;
 
@@ -34,9 +35,26 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
     async Task<int> RunWebServer(CommandContext context, CancellationToken cancellationToken)
     {
         var builder = WebApplication.CreateBuilder(context.Arguments.ToArray());
+        AddBoardServices(builder);
+
+        var app = builder.Build();
+
+        app.UseForwardedHeaders();
+        app.MapControllers();
+        await app.RunAsync(cancellationToken);
+        return 0;
+    }
+
+    void AddBoardServices(WebApplicationBuilder builder)
+    {
         foreach (var copyOfService in typeRegistrar.GetCopyOfServices())
         {
             builder.Services.Add(copyOfService);
+        }
+
+        if (builder.Environment.IsE2ETest())
+        {
+            builder.Services.AddSingleton<IGameStrategy, MockedGameStrategy>();
         }
 
         builder.Services.AddSingleton<IHostedService, HelloService>();
@@ -48,12 +66,6 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
-        var app = builder.Build();
-
-        app.UseForwardedHeaders();
-        app.MapControllers();
-        await app.RunAsync(cancellationToken);
-        return 0;
     }
 }
 

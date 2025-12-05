@@ -13,7 +13,7 @@ using ZtrBoardGame.Console.Commands.Board;
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
 [Binding, Scope(Feature = "From Board To Pc Connection")]
-public class FromBoardToPcStepDefinitions
+public class FromBoardToPcStepDefinitions : IDisposable
 {
     private IServiceCollection _services;
     private CancellationTokenSource _cancellationTokenSource;
@@ -159,4 +159,22 @@ public class FromBoardToPcStepDefinitions
         _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
     }
     #endregion
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+        {
+            return;
+        }
+
+        _cancellationTokenSource?.Dispose();
+        _requestReceivedEvent?.Dispose();
+        _serviceProvider?.Dispose();
+    }
 }

@@ -9,10 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.RaspberryPi;
 
 namespace ZtrBoardGame.Console.Commands.Board;
 
-public class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider, ILogger<BoardGameService> logger) : IHostedService
+public class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider,
+    IGameStrategy gameStrategy, ILogger<BoardGameService> logger) : IHostedService
 {
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
     Task _backgroundTask;
@@ -28,17 +30,9 @@ public class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IH
     async Task SingleGame(CancellationToken cancellationToken)
     {
         await WaitGameToBegin();
-
-        var delay = await ActualGameLoop();
+        var delay = await gameStrategy.Do(boardGameStatusStorage.FieldOrder);
 
         await FinishTheGame(cancellationToken, delay);
-    }
-
-    static async Task<TimeSpan> ActualGameLoop()
-    {
-        var delay = TimeSpan.FromSeconds(Random.Shared.Next(10, 30));
-        await Task.Delay(delay);
-        return delay;
     }
 
     async Task WaitGameToBegin()

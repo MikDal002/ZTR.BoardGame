@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ZtrBoardGame.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "pc run"
+    }
+  }
+}

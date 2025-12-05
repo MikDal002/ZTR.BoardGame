@@ -32,6 +32,47 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
     public async Task StartSessionAsync(CancellationToken cancellationToken)
     {
+        await RequestStartOnBoards(cancellationToken);
+
+        await AwaitResultsFromBoards(cancellationToken);
+
+        ShowLeaderBoard();
+    }
+
+    void ShowLeaderBoard()
+    {
+        var sorted = _results.OrderBy(kv => kv.Value.Duration).ToList();
+
+        var table = new Table()
+            .RoundedBorder()
+            .AddColumn("Miejsce")
+            .AddColumn("Board")
+            .AddColumn("Czas (ms)");
+
+        var place = 1;
+        foreach (var kv in sorted)
+        {
+            var board = kv.Key;
+            var result = kv.Value;
+            table.AddRow(place.ToString(), board.Address.ToString(), result.Duration.TotalMilliseconds.ToString());
+            place++;
+        }
+
+        AnsiConsole.Write(new FigletText("Wyniki"));
+        AnsiConsole.Write(table);
+    }
+
+    async Task AwaitResultsFromBoards(CancellationToken cancellationToken)
+    {
+        do
+        {
+            AnsiConsole.MarkupLine($"[grey]Oczekiwanie na wyniki od graczy[/]");
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+        } while (_results.Count != boardStorage.Count);
+    }
+
+    async Task RequestStartOnBoards(CancellationToken cancellationToken)
+    {
         foreach (var boardAddress in boardStorage.GetAllAddresses())
         {
             var httpClient = httpClientFactory.CreateClient();
@@ -44,31 +85,5 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
                 logger.LogInformation("Successfully checked connection to Board");
             }, ResilienceSettings, console, logger, cancellationToken, boardAddress);
         }
-
-        do
-        {
-            AnsiConsole.MarkupLine($"[grey]Oczekiwanie na wyniki od graczy[/]");
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-        } while (_results.Count != boardStorage.Count);
-
-        var sorted = _results.OrderBy(kv => kv.Value.Duration).ToList();
-
-        var table = new Table()
-            .RoundedBorder()
-            .AddColumn("Miejsce")
-            .AddColumn("Board")
-            .AddColumn("Czas");
-
-        var place = 1;
-        foreach (var kv in sorted)
-        {
-            var board = kv.Key;
-            var result = kv.Value;
-            table.AddRow(place.ToString(), board.Address.ToString(), result.Duration.ToString(@"hh\:mm\:ss"));
-            place++;
-        }
-
-        AnsiConsole.Write(new FigletText("Wyniki"));
-        AnsiConsole.Write(table);
     }
 }

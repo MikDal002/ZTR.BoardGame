@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{34591388
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.E2E.Tests", "tests\ZtrBoardGame.E2E.Tests\ZtrBoardGame.E2E.Tests.csproj", "{E17E17E3-73F7-4204-8C30-B89BE8963ECA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZtrBoardGame.RaspberryPi", "src\ZtrBoardGame.RaspberryPi\ZtrBoardGame.RaspberryPi.csproj", "{9EF54E18-74DE-73BE-328C-9B22FF09ED74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{E17E17E3-73F7-4204-8C30-B89BE8963ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E17E17E3-73F7-4204-8C30-B89BE8963ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E17E17E3-73F7-4204-8C30-B89BE8963ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EF54E18-74DE-73BE-328C-9B22FF09ED74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EF54E18-74DE-73BE-328C-9B22FF09ED74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EF54E18-74DE-73BE-328C-9B22FF09ED74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EF54E18-74DE-73BE-328C-9B22FF09ED74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +64,7 @@ Global
 		{1DBB14EB-3533-494A-842C-3DB1EF3D2917} = {82DE6FA7-D07F-4EC4-822B-9234CE88B31E}
 		{BF2F9CF3-FADF-4314-AEF8-E5727CE6A2FA} = {34591388-3F0B-4DD1-85B4-A523A6D23418}
 		{E17E17E3-73F7-4204-8C30-B89BE8963ECA} = {34591388-3F0B-4DD1-85B4-A523A6D23418}
+		{9EF54E18-74DE-73BE-328C-9B22FF09ED74} = {82DE6FA7-D07F-4EC4-822B-9234CE88B31E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F5B8468-A485-43F0-83B9-3AC2056CBEDA}
