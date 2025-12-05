@@ -9,6 +9,7 @@ using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
+using ZtrBoardGame.RaspberryPi;
 
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
@@ -41,6 +42,7 @@ public class FromPcToBoardStepDefinitions
         _boardServerFactory.ConfigureTestServices(services =>
         {
             services.AddSingleton<IAnsiConsole>(_boardConsole);
+            services.AddSingleton<IGameStrategy, MockedGameStrategy>();
         });
     }
 
@@ -164,4 +166,19 @@ public class FromPcToBoardStepDefinitions
         _boardConsole.Lines.Should().Contain(str => str.Contains(message));
     }
     #endregion
+
+    public void Dispose()
+    {
+        Dispose(true);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+        {
+            return;
+        }
+
+        _cancellationTokenSource?.Dispose();
+    }
 }

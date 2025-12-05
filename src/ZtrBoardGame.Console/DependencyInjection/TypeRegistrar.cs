@@ -10,6 +10,7 @@ using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.RaspberryPi;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
 
@@ -23,6 +24,36 @@ public sealed class TypeRegistrar : ITypeRegistrar
     {
         _services = serviceCollection ?? new ServiceCollection();
 
+        var configuration = CreateConfiguration();
+
+        ConfigureLogging(enableConsoleLogging, configuration);
+        AddCommonServices(configuration);
+
+        _services.AddRaspberryPiGameStrategy();
+
+        _services.ConfigureHelloServiceHttpClient();
+    }
+
+    void AddCommonServices(IConfigurationRoot configuration)
+    {
+        _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
+        _services.Configure<BoardNetworkSettings>(configuration.GetSection(nameof(BoardNetworkSettings)));
+        _services.AddSingleton<IBoardStorage, BoardStorage>();
+        _services.AddSingleton<IUpdateService, UpdateService>();
+        _services.AddSingleton(AnsiConsole.Console);
+        _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
+        _services.AddSingleton<IGameService, GameService>();
+        _services.AddSingleton<TypeRegistrar>(this);
+    }
+
+    void ConfigureLogging(bool enableConsoleLogging, IConfigurationRoot configuration)
+    {
+        LoggerSetup.ConfigureSerilog(_services, configuration, enableConsoleLogging);
+        _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
+    }
+
+    IConfigurationRoot CreateConfiguration()
+    {
         // --- Configuration Setup ---
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
         var configuration = new ConfigurationBuilder()
@@ -34,21 +65,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
             .Build();
 
         _services.AddSingleton<IConfiguration>(configuration);
-
-        LoggerSetup.ConfigureSerilog(_services, configuration, enableConsoleLogging);
-        _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
-
-        _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
-        _services.Configure<BoardNetworkSettings>(configuration.GetSection(nameof(BoardNetworkSettings)));
-        _services.AddSingleton<IBoardStorage, BoardStorage>();
-        _services.AddSingleton<IUpdateService, UpdateService>();
-        _services.AddSingleton(AnsiConsole.Console);
-        _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
-        _services.AddSingleton<IGameService, GameService>();
-
-        _services.AddSingleton<TypeRegistrar>(this);
-
-        _services.ConfigureHelloServiceHttpClient();
+        return configuration;
     }
 
     public ITypeResolver Build() => new TypeResolver(_services.BuildServiceProvider());

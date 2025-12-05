@@ -33,11 +33,13 @@ public sealed class LogInterceptor(ILogger<LogInterceptor> logger) : ICommandInt
             _stopwatch?.Elapsed);
     }
 
-    private static Dictionary<string, object?> SanitizeSettings(CommandSettings? settings)
+    private static readonly Dictionary<string, object?> EMPTY = new();
+
+    private static IReadOnlyDictionary<string, object?> SanitizeSettings(CommandSettings? settings)
     {
         if (settings == null)
         {
-            return new();
+            return EMPTY;
         }
 
         return settings.GetType()
@@ -62,11 +64,7 @@ public sealed class LogInterceptor(ILogger<LogInterceptor> logger) : ICommandInt
             return directoryInfo.FullName;
         }
         // Add more type-specific handling here if needed in the future
-        // Example:
-        // if (value is FileInfo fileInfo)
-        // {
-        //     return fileInfo.FullName;
-        // }
+
         return value;
     }
 }
