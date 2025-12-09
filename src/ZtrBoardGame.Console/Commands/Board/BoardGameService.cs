@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ using ZtrBoardGame.RaspberryPi;
 namespace ZtrBoardGame.Console.Commands.Board;
 
 public class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider,
-    IGameStrategy gameStrategy, ILogger<BoardGameService> logger) : IHostedService
+    IServiceProvider serviceProvider, ILogger<BoardGameService> logger) : IHostedService
 {
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
     Task _backgroundTask;
@@ -30,6 +31,8 @@ public class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IH
     async Task SingleGame(CancellationToken cancellationToken)
     {
         await WaitGameToBegin();
+        using var serviceScope = serviceProvider.CreateScope();
+        var gameStrategy = serviceScope.ServiceProvider.GetRequiredService<IGameStrategy>();
         var delay = await gameStrategy.Do(boardGameStatusStorage.FieldOrder);
 
         await FinishTheGame(cancellationToken, delay);

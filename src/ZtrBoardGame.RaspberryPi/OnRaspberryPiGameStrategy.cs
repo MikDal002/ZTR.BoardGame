@@ -9,7 +9,7 @@ class OnRaspberryPiGameStrategy : IGameStrategy
     readonly IAnsiConsole _console;
     readonly List<IField> _fields;
 
-    public OnRaspberryPiGameStrategy(IModule module, IAnsiConsole console)
+    public OnRaspberryPiGameStrategy(IPhysicalBoard module, IAnsiConsole console)
     {
         _console = console;
         _fields = module.GetFields().ToList();
@@ -49,7 +49,7 @@ class OnRaspberryPiGameStrategy : IGameStrategy
             _console.WriteLine("Moving to next field");
         }
 
-        _console.WriteLine($"Twój wynik z innego StopWatcha ${totalAnotherStopWatch}");
+        _console.WriteLine($"Twój wynik ${totalAnotherStopWatch}");
         return totalAnotherStopWatch;
     }
 
@@ -65,6 +65,7 @@ class OnRaspberryPiGameStrategy : IGameStrategy
             currentField.OnHallotronEngaged += currentFieldOnOnHallotronEngaged;
 
             currentField.TurnLedsOn(Led.Red);
+            anotherStopWatch.Start();
 
             while (true)
             {

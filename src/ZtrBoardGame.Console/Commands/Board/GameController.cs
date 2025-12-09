@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ZtrBoardGame.RaspberryPi;
 
@@ -12,8 +11,8 @@ public class GameController(IBoardGameStatusStorage boardGameStatusStorage) : Co
     [HttpPost]
     public IActionResult Post()
     {
-        // This needs to be recieved from PC
-        boardGameStatusStorage.FieldOrder = new FieldOrder(new List<int> { 1, 2, 3, 4 }.OrderBy(_ => Random.Shared.Next()).ToList());
+        var list = Enumerable.Range(0, 16).OrderBy(_ => Random.Shared.Next()).Take(4).ToList();
+        boardGameStatusStorage.FieldOrder = new FieldOrder(list);
         boardGameStatusStorage.StartGameRequested = true;
         return Ok();
     }

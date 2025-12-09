@@ -29,7 +29,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         ConfigureLogging(enableConsoleLogging, configuration);
         AddCommonServices(configuration);
 
-        _services.AddRaspberryPiGameStrategy();
+        _services.AddRaspberryPiGameStrategy(configuration);
         _services.AddRaspberryPiHardwareConfigurer();
 
         _services.ConfigureHelloServiceHttpClient();
