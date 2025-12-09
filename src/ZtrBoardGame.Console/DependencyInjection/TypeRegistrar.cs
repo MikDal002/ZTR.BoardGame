@@ -30,6 +30,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         AddCommonServices(configuration);
 
         _services.AddRaspberryPiGameStrategy();
+        _services.AddRaspberryPiHardwareConfigurer();
 
         _services.ConfigureHelloServiceHttpClient();
     }
@@ -44,6 +45,8 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
         _services.AddSingleton<IGameService, GameService>();
         _services.AddSingleton<TypeRegistrar>(this);
+
+        _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
     }
 
     void ConfigureLogging(bool enableConsoleLogging, IConfigurationRoot configuration)

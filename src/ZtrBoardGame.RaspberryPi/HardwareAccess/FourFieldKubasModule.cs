@@ -10,7 +10,8 @@ interface IModule
 
 internal class FourFieldKubasModule : IModule, IDisposable
 {
-    private readonly Object _fieldReadLock = new();
+    private readonly object _i2cLock = new();
+    private readonly object _fieldReadLock = new();
     private readonly GpioController _controller = new();
     readonly I2cDevice _device;
     IField[] _fields;
@@ -31,8 +32,12 @@ internal class FourFieldKubasModule : IModule, IDisposable
 
     void Callback(object s, PinValueChangedEventArgs e)
     {
+
         var buffer = new byte[2];
-        _device.Read(buffer);
+        lock (_i2cLock)
+        {
+            _device.Read(buffer);
+        }
 
         foreach (var internalField in GetFields())
         {
@@ -56,8 +61,8 @@ internal class FourFieldKubasModule : IModule, IDisposable
 
             _fields = new IField[]
             {
-                new I2CField(_device, field01), new I2CField(_device, field02), new I2CField(_device, field03),
-                new I2CField(_device, field04),
+                new I2CField(_device, _i2cLock, field01), new I2CField(_device, _i2cLock, field02), new I2CField(_device, _i2cLock, field03),
+                new I2CField(_device, _i2cLock, field04),
             };
 
             return _fields;
