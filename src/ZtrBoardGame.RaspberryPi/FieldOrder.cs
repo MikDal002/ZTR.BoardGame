@@ -1,6 +1,5 @@
 ﻿namespace ZtrBoardGame.RaspberryPi;
 
-public record FieldOrder(IReadOnlyCollection<int> order)
+public record FieldOrder(IReadOnlyCollection<int> Order)
 {
-    public IReadOnlyCollection<int> Order => order;
 }
