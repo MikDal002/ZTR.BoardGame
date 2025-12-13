@@ -102,3 +102,43 @@ The final confirmation and potential adjustments to this file are tracked in Git
 
 ---
 *This documentation is related to GitHub Issue [#44](https://github.com/MikDal002/ZTR.Templates/issues/44): Define and Document Branching Strategy & GitVersion Configuration.*
+
+## Raspberry PI I2C Debugging
+
+This section provides a collection of useful commands for debugging I2C communication on a Raspberry Pi.
+
+### Listening for Interrupts
+
+To monitor a specific GPIO pin for a falling edge interrupt, which is useful for detecting signals from a connected chip, use the `gpiomon` tool. The following command listens on `gpiochip0` at pin `4`:
+
+```bash
+gpiomon --falling-edge gpiochip0 4
+```
+
+### Turning On All Ports
+
+For testing purposes, you can activate all I/O ports on an I2C device. The command below sends a signal to the device at address `0x20` on I2C bus `1`, setting all ports to high:
+
+```bash
+i2cset -y 1 0x20 0xff 0xff
+```
+
+### Discovering Device Addresses
+
+To scan for all connected devices on a specific I2C bus, you can use `i2cdetect`. This is essential for verifying that your devices are correctly connected and recognized by the Raspberry Pi.
+
+The following command will display a table of all detected devices on I2C bus `1`:
+
+```bash
+i2cdetect -y 1
+```
+
+### Reading from an I2C Device
+
+To read a word (two bytes) from a specific register of an I2C device, use the `i2cget` command. This is useful for checking the state or value of a device's internal registers. The `w` parameter at the end of the command specifies that a word should be read.
+
+The following command reads a word from a device at address `0x20` on I2C bus `1` at register `0x00`:
+
+```bash
+i2cget -y 1 0x20 0x00 w
+```

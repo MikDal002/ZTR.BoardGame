@@ -1,14 +1,17 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.RaspberryPi;
 
 public static class RaspberryPiDependenciesInstaller
 {
-    public static IServiceCollection AddRaspberryPiGameStrategy(this IServiceCollection services)
+    public static IServiceCollection AddRaspberryPiGameStrategy(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IGameStrategy, OnRaspberryPiGameStrategy>();
-        services.AddSingleton<IModule, FourFieldKubasModule>();
+        services.Configure<PhysicalBoardSettings>(configuration.GetSection(nameof(PhysicalBoardSettings)));
+
+        services.AddScoped<IGameStrategy, OnRaspberryPiGameStrategy>();
+        services.AddScoped<IPhysicalBoard, I2CPhysicalBoard>();
         return services;
     }
 

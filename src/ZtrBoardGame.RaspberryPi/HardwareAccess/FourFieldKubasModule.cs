@@ -3,29 +3,30 @@ using System.Device.I2c;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
 
-interface IModule
+interface IModule : IDisposable
 {
     public IEnumerable<IField> GetFields();
 }
 
-internal class FourFieldKubasModule : IModule, IDisposable
+internal class FourFieldKubasModule : IModule
 {
+    readonly GpioController _controller;
+    readonly int _interruptPinNumber;
     private readonly object _i2cLock = new();
     private readonly object _fieldReadLock = new();
-    private readonly GpioController _controller = new();
     readonly I2cDevice _device;
     IField[] _fields;
-    private static int THE_ONLY_MODULE_INTERRUPT_PIN = 4;
     private bool _disposed;
 
-    public FourFieldKubasModule(int address = 0x20)
+    public FourFieldKubasModule(int address, GpioController controller, int interruptPinNumber)
     {
+        _controller = controller;
+        _interruptPinNumber = interruptPinNumber;
         I2cConnectionSettings settings = new(1, address);
         _device = I2cDevice.Create(settings);
-        _device.Write(new byte[] { 0xFF, 0xFF }); // Inicjalizacja - wszystko na 1
+        _device.Write(new byte[] { 0x88, 0x88 }); // Inicjalizacja hallotronów na 1
 
-        _controller.OpenPin(THE_ONLY_MODULE_INTERRUPT_PIN, PinMode.Input);
-        _controller.RegisterCallbackForPinValueChangedEvent(THE_ONLY_MODULE_INTERRUPT_PIN,
+        controller.RegisterCallbackForPinValueChangedEvent(interruptPinNumber,
             PinEventTypes.Falling,
             Callback);
     }
@@ -78,7 +79,7 @@ internal class FourFieldKubasModule : IModule, IDisposable
 
         if (disposing)
         {
-            _controller.Dispose();
+            _controller.UnregisterCallbackForPinValueChangedEvent(_interruptPinNumber, Callback);
             _device.Dispose();
         }
 

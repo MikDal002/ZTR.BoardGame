@@ -60,6 +60,8 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
         AnsiConsole.Write(new FigletText("Wyniki"));
         AnsiConsole.Write(table);
+
+        _results.Clear();
     }
 
     async Task AwaitResultsFromBoards(CancellationToken cancellationToken)
