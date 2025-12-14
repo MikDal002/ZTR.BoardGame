@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console.Cli;
@@ -14,6 +13,8 @@ namespace ZtrBoardGame.Console.Commands.Board;
 
 public class BoardRunSettings : CommandSettings
 {
+    [CommandOption("--no-server")]
+    public bool NoServer { get; set; }
 }
 
 public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncCommand<BoardRunSettings>
@@ -22,7 +23,7 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
     {
         try
         {
-            return await RunWebServer(context, cancellationToken);
+            return await RunWebServer(context, runSettings.NoServer, cancellationToken);
         }
         catch (TaskCanceledException)
         {
@@ -32,15 +33,19 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
         return 0;
     }
 
-    async Task<int> RunWebServer(CommandContext context, CancellationToken cancellationToken)
+    async Task<int> RunWebServer(CommandContext context, bool runInOfflineMode, CancellationToken cancellationToken)
     {
         var builder = WebApplication.CreateBuilder(context.Arguments.ToArray());
+
+        var configurationStrategy = BuildConfigurationStrategy.GetStrategy(runInOfflineMode);
+
+        configurationStrategy.ConfigureServices(builder);
+
         AddBoardServices(builder);
 
         var app = builder.Build();
+        configurationStrategy.ConfigureApp(app);
 
-        app.UseForwardedHeaders();
-        app.MapControllers();
         await app.RunAsync(cancellationToken);
         return 0;
     }
@@ -57,15 +62,8 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
             builder.Services.AddSingleton<IGameStrategy, MockedGameStrategy>();
         }
 
-        builder.Services.AddSingleton<IHostedService, HelloService>();
         builder.Services.AddSingleton<IHostedService, BoardGameService>();
         builder.Services.AddSingleton<IBoardGameStatusStorage, BoardGameStatusStorage>();
-        builder.Services.AddControllers();
-        builder.Services.AddHttpClient();
-        builder.Services.Configure<ForwardedHeadersOptions>(options =>
-        {
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        });
     }
 }
 

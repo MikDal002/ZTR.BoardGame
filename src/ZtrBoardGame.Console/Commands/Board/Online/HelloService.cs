@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrBoardGame.Console.Commands.Board;
+namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 public interface IHelloService
 {
@@ -22,6 +22,7 @@ public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole con
 {
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
     Task _backgroundTask;
+    private readonly CancellationTokenSource _canceler = new();
 
     public async Task AnnouncePresenceAsync(CancellationToken cancellationToken)
     {
@@ -47,12 +48,14 @@ public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole con
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _backgroundTask = AnnouncePresenceAsync(cancellationToken);
+        var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _canceler.Token);
+        _backgroundTask = AnnouncePresenceAsync(cancellationTokenSource.Token);
         return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        await _canceler.CancelAsync();
         await _backgroundTask;
     }
 }

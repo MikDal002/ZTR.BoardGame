@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
-namespace ZtrBoardGame.Console.Commands.Board;
+namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 [ApiController]
 [Route("api/board/health")]
