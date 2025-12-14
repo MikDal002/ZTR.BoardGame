@@ -5,34 +5,42 @@ using System;
 using System.Net.Http;
 using ZtrBoardGame.Configuration.Shared;
 
-namespace ZtrBoardGame.Console.Commands.Board;
+namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 public static class BoardHttpClientConfigure
 {
     public const string ToPcClientName = "ToPcHttpClient";
     public static IServiceCollection ConfigureHelloServiceHttpClient(this IServiceCollection services,
-        HttpMessageHandler httpMessageHandlerMock = null)
+        HttpMessageHandler additionalHttpMessageHandler = null)
     {
         var httpClientBuilder = services.AddHttpClient(ToPcClientName, (serviceProvider, client) =>
         {
             var networkSettings = serviceProvider.GetRequiredService<IOptions<BoardNetworkSettings>>().Value;
             var console = serviceProvider.GetRequiredService<IAnsiConsole>();
 
-            if (string.IsNullOrEmpty(networkSettings.PcServerAddress))
-            {
-                const string errorMessage = "PC server address is not configured";
-                console.MarkupLine($"[red]Error:[/] {errorMessage}");
-                throw new InvalidOperationException(errorMessage);
-            }
+            ValidateSettings(networkSettings, console);
 
             client.BaseAddress = new(networkSettings.PcServerAddress);
+            client.Timeout = networkSettings.Timeout;
         });
 
-        if (httpMessageHandlerMock is not null)
+        if (additionalHttpMessageHandler is not null)
         {
-            httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => httpMessageHandlerMock);
+            httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => additionalHttpMessageHandler);
         }
 
         return services;
+    }
+
+    static void ValidateSettings(BoardNetworkSettings networkSettings, IAnsiConsole console)
+    {
+        if (!string.IsNullOrEmpty(networkSettings.PcServerAddress))
+        {
+            return;
+        }
+
+        const string errorMessage = "PC server address is not configured";
+        console.MarkupLine($"[red]Error:[/] {errorMessage}");
+        throw new InvalidOperationException(errorMessage);
     }
 }
