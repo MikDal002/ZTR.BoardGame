@@ -1,4 +1,4 @@
-namespace ZtrBoardGame.Console.Commands.Board;
+namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 public interface IBoardStatusStorage
 {

@@ -7,6 +7,7 @@ using Spectre.Console;
 using Spectre.Console.Testing;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
 using ZtrBoardGame.RaspberryPi;

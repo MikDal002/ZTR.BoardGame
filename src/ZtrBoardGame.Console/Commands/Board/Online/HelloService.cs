@@ -10,18 +10,19 @@ using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
 
-namespace ZtrBoardGame.Console.Commands.Board;
+namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 public interface IHelloService
 {
     Task AnnouncePresenceAsync(CancellationToken cancellationToken);
 }
 
-public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider, ILogger<HelloService> logger)
-    : IHelloService, IHostedService
+public sealed class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider, ILogger<HelloService> logger)
+    : IHelloService, IHostedService, IDisposable
 {
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
     Task _backgroundTask;
+    private readonly CancellationTokenSource _canceler = new();
 
     public async Task AnnouncePresenceAsync(CancellationToken cancellationToken)
     {
@@ -47,12 +48,25 @@ public class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole con
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _backgroundTask = AnnouncePresenceAsync(cancellationToken);
+        _backgroundTask = AnnouncePresenceAsync(_canceler.Token);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return StopAsync(cancellationToken);
+        }
+
         return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        await _canceler.CancelAsync();
         await _backgroundTask;
+    }
+
+    public void Dispose()
+    {
+        _backgroundTask?.Dispose();
+        _canceler?.Dispose();
     }
 }
