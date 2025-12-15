@@ -8,7 +8,7 @@ using Spectre.Console;
 using Spectre.Console.Testing;
 using System.Net;
 using ZtrBoardGame.Configuration.Shared;
-using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.Board.Online;
 
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 

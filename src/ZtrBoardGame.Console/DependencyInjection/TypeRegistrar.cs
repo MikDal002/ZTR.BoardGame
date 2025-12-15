@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using ZtrBoardGame.Configuration.Shared;
-using ZtrBoardGame.Console.Commands.Board;
+using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;

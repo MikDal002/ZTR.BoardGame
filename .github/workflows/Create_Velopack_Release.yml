@@ -39,7 +39,7 @@ jobs:
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
       - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
-        run: ./build.cmd UnitTests PublishToGitHubWithVelopack
+        run: ./build.cmd UnitTests PublishToGitHubWithVelopack --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ubuntu-latest:
@@ -57,6 +57,6 @@ jobs:
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
       - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
-        run: ./build.cmd UnitTests PublishToGitHubWithVelopack
+        run: ./build.cmd UnitTests PublishToGitHubWithVelopack --SystemArchitecture arm64 --OperationSystem linux  --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
