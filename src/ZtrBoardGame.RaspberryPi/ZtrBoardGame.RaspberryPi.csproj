@@ -15,4 +15,8 @@
     <PackageReference Include="System.Device.Gpio" Version="4.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

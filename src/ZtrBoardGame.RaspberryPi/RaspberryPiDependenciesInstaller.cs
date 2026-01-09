@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.RaspberryPi;

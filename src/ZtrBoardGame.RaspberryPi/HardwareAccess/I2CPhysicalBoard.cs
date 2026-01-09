@@ -1,20 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Device.Gpio;
+using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 interface IPhysicalBoard
 {
     public IEnumerable<IField> GetFields();
-}
-
-class PhysicalBoardSettings
-{
-    public IReadOnlyCollection<string> Addresses { get; set; } = new List<string>(); // for example 0x20, 0x21, 0x22, 0x23
-    public int InterruptPinNumber { get; set; } // Usually 4
-
-    public IEnumerable<int> GetAddressesAsInt()
-        => Addresses.Select(x => Convert.ToInt32(x.Trim(), 16));
 }
 
 #pragma warning disable S101
