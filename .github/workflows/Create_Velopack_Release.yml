@@ -21,6 +21,7 @@ on:
     branches:
       - master
       - main
+      - release
       - develop
 
 jobs:
