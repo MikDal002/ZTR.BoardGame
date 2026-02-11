@@ -1,11 +1,3 @@
-![NuGet Version and Downloads count](https://buildstats.info/nuget/ZTR.Utilities.Templates)
-========
-
-Download
-========
-
-The newest package is available [on NuGet](https://buildstats.info/nuget/ZTR.Utilities.Templates).
-
 Generowanie kluczy SSH
 ========
 
@@ -15,7 +7,63 @@ Prosta instrukcja jak je generować jest tutaj: https://wiki.mikr.us/uzywaj_kluc
 Krótko o projekcie
 ========
 
-Chciałbym, aby ten projekt był zbiorem dobrych praktyk, których chcę używać, za każdym razem, gdy zaczynam nowy program. 
+Projekt małej gry interaktywnej.
+
+Instalacja/konfiguracji
+========
+
+## Krótkie sprawdzenie instalacji na Raspberry Pi
+
+1. Pobierz najnowszą wersję z strony Releases (po prawej, https://github.com/MikDal002/ZTR.BoardGame/releases) 
+   . .AppImage dla raspberry pi,
+   . np .zip dla Windows,
+2. Wrzuć AppImage na Raspberry Pi (np. do katalogu /home/pi/),
+1. Skopiuj plik appsettings.json do tego samego katalogu, co aplikacja.
+1. Nadaj uprawnienia do uruchamiania:
+   ```bash
+   chmod +x /home/piZtrBoardGame.Console-linux-arm64-alpha.AppImage
+   ```
+1. Sprawdź, jakie moduły zostały podłączone do Raspberry Pi używając komendy:
+   ```bash
+   i2cdetect -y 1
+   ```
+   Powinieneś zobaczyć coś takiego:
+   ```bash
+        0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+   00:                         -- -- -- -- -- -- -- --
+   10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+   20: -- 21 22 -- 24 -- 26 -- -- -- -- -- -- -- -- --
+   30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+   40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+   50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+   60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+   70: -- -- -- -- -- -- -- --
+    ```
+
+    W tym przykładzie widzimy, że podłączone są moduły o adresach 0x21, 0x22, 0x24 i 0x26.
+1. Skonfiguruj plik appsettings.json zgodnie z potrzebami (adresy modułów, itp.).  
+   ```json
+   "PhysicalBoardSettings": {
+        // You can find your addresses using i2cdetect -y 1
+        "Addresses": [ "0x20", "0x21", "0x22", "0x23" ],
+        "InterruptPinNumber": 4
+      },
+   ```
+1. Upewnij się, że gra działa uruchamiając ją w trybie bez serwera (offline):
+  `./ZtrBoardGame.Console-linux-arm64-alpha.AppImage board run --no-server`
+
+## Utworzenie niezależnej sieci lokalnej WiFi na Raspberry Pi
+Jeśli chcesz, aby Raspberry Pi działało jako samodzielna jednostka bez dostępu do internetu, możesz skonfigurować je jako punkt dostępowy WiFi. Poniżej znajdziesz kroki, jak to zrobić:
+1. Tutaj jest tutorial jak to skonfigurować szybko i wygodnie: https://www.tomshardware.com/how-to/raspberry-pi-access-point. 
+1. Oznacz jedno raspberry pi, jako master, a wszystkie pozostałe skonfiguruj w ten sposób, aby się z nim łączyły. 
+
+
+## Konfiguracja automatycznego startu aplikacji w trybie sieciowym. 
+
+## Konfiguracja serwera:
+1. Ustaw nazwę komputera, na którym znajduje się serwer na PCMR.
+1. Uruchom ściągniętą aplikację.
+1. Dostosuj appsettings.json.
 
 Inne ciekawe szablony
 ========

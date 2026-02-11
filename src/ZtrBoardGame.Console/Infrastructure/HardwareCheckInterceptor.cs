@@ -1,13 +1,15 @@
+using Microsoft.Extensions.Options;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
 using System.Threading;
+using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
-class HardwareCheckInterceptor(IAnsiConsole console, ISystemConfigurer systemConfigurer) : ICommandInterceptor
+class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurationSettings> config, ISystemConfigurer systemConfigurer) : ICommandInterceptor
 {
     public void Intercept(CommandContext context, CommandSettings settings)
     {
@@ -32,14 +34,19 @@ class HardwareCheckInterceptor(IAnsiConsole console, ISystemConfigurer systemCon
         }
 
         console.Write(new Rule("[yellow]Hardware configuration is required.[/]"));
-        var confirm = console.Confirm("Do you want to configure the system now?");
+
+        var confirm = true;
+        if (!config.Value.DoAutoConfig)
+        {
+            confirm = console.Confirm("Do you want to configure the system now?");
+        }
 
         if (confirm)
         {
             try
             {
                 AnsiConsole.Status()
-                    .Start("Configuring I2C using raspi-config...", ctx =>
+                    .Start("Configuring RaspberryPi...", ctx =>
                     {
                         systemConfigurer.Configure();
                         Thread.Sleep(500);

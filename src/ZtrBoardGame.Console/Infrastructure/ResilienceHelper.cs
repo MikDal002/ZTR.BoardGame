@@ -11,7 +11,7 @@ public record ResilienceSettings(int MaxRetries, TimeSpan Delay, string Operatio
 
 public static class ResilienceHelper
 {
-    public static async Task InvokeWithRetryAsync(Func<Task> func, ResilienceSettings settings, IAnsiConsole console, ILogger logger, CancellationToken cancellationToken, Uri? targetAddress)
+    public static async Task<bool> InvokeWithRetryAsync(Func<Task> func, ResilienceSettings settings, IAnsiConsole console, ILogger logger, CancellationToken cancellationToken, Uri? targetAddress)
     {
         var trials = settings.MaxRetries;
 
@@ -21,7 +21,7 @@ public static class ResilienceHelper
             try
             {
                 await func();
-                break;
+                return true;
             }
             catch (HttpRequestException e)
             {
@@ -32,7 +32,7 @@ public static class ResilienceHelper
             catch (TaskCanceledException e)
             {
                 logger.LogInformation(e, "{Operation} task was canceled.", settings.OperationName);
-                break;
+                return false;
             }
             catch (Exception e)
             {
@@ -48,5 +48,7 @@ public static class ResilienceHelper
 
             await Task.Delay(settings.Delay, cancellationToken);
         }
+
+        return false;
     }
 }

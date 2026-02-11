@@ -13,6 +13,7 @@ public static class RaspberryPiDependenciesInstaller
 
         services.AddScoped<IGameStrategy, OnRaspberryPiGameStrategy>();
         services.AddScoped<IPhysicalBoard, I2CPhysicalBoard>();
+        services.AddScoped<IPhysicalNotificator, I2CPhysicalBoard>();
         return services;
     }
 

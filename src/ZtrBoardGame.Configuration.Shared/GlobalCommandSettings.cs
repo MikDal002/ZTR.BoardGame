@@ -1,7 +1,7 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
-namespace ZtrBoardGame.Console.Commands.Base;
+namespace ZtrBoardGame.Configuration.Shared;
 
 public class GlobalCommandSettings : CommandSettings
 {
@@ -14,4 +14,9 @@ public class GlobalCommandSettings : CommandSettings
     [Description("The name of the command to be executed.")]
 
     public string? TestCommandName { get; set; }
+
+    [CommandOption("--auto-config")]
+    [Description("Automatically configures hardware (I2C, Avahi) without asking user.")]
+    [DefaultValue(false)]
+    public bool AutomaticallyConfigureHardware { get; set; }
 }

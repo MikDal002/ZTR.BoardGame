@@ -16,9 +16,9 @@ public static class Program
     {
         VelopackApp.Build().Run();
 
-        var (processedArgs, enableConsoleLogging) = args.ProcessGlobalOptions();
+        var (processedArgs, enableConsoleLogging, hardwareConfigurationSettings) = args.ProcessGlobalOptions();
 
-        var typeRegistrar = new TypeRegistrar(enableConsoleLogging);
+        var typeRegistrar = new TypeRegistrar(enableConsoleLogging, hardwareConfigurationSettings);
         var app = new CommandApp(typeRegistrar);
 
         app.Configure(config =>

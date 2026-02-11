@@ -4,8 +4,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console.Commands.PC;
@@ -75,17 +77,28 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
     async Task RequestStartOnBoards(CancellationToken cancellationToken)
     {
-        foreach (var boardAddress in boardStorage.GetAllAddresses())
+        var fields = Enumerable.Range(0, 16)
+            .OrderBy(x => Random.Shared.Next())
+            .Take(4)
+            .ToList();
+
+        var gameRequest = new GameStartRequest(fields);
+
+        await Parallel.ForEachAsync(boardStorage.GetAllAddresses(), cancellationToken, async (boardAddress, cancellationToken) =>
         {
             var httpClient = httpClientFactory.CreateClient();
             using var _ = logger.BeginScopeWith(("BoardAddress", boardAddress.ToString()));
 
             await ResilienceHelper.InvokeWithRetryAsync(async () =>
             {
-                var response = await httpClient.PostAsync(new Uri(boardAddress, "api/board/game"), null, cancellationToken);
+                var response = await httpClient.PostAsJsonAsync(
+                    new Uri(boardAddress, "api/board/game"),
+                    gameRequest,
+                    cancellationToken);
                 response.EnsureSuccessStatusCode();
-                logger.LogInformation("Successfully checked connection to Board");
+                logger.LogInformation("Successfully started game on Board");
             }, ResilienceSettings, console, logger, cancellationToken, boardAddress);
-        }
+
+        });
     }
 }

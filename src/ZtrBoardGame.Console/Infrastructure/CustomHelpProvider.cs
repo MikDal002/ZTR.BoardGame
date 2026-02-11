@@ -4,7 +4,7 @@ using Spectre.Console.Cli.Help;
 using Spectre.Console.Rendering;
 using System.Collections.Generic;
 using System.Linq;
-using ZtrBoardGame.Console.Commands.Base;
+using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 

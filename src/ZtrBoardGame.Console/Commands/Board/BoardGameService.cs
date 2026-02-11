@@ -45,7 +45,7 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
 
         await resultSender.SendResultsAsync(delay, cancellationToken);
 
-        boardGameStatusStorage.Set(StatusRecord.NotStarted);
+        boardGameStatusStorage.Set(StatusRecord.NotStarted.HelloServiceFinished());
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
