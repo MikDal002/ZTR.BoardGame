@@ -1,0 +1,70 @@
+using Microsoft.Extensions.Logging;
+using Spectre.Console.Cli;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+
+namespace ZtrBoardGame.Console.Infrastructure;
+
+public sealed class LogInterceptor(ILogger<LogInterceptor> logger) : ICommandInterceptor
+{
+    private Stopwatch? _stopwatch;
+    private const string SecretMask = "[SECRET]";
+
+    public void Intercept(CommandContext context, CommandSettings? settings)
+    {
+        _stopwatch = Stopwatch.StartNew();
+
+        var sanitizedSettings = SanitizeSettings(settings);
+        logger.LogInformation("Starting execution of command: {CommandName} with settings: {@CommandSettings}",
+            context.Name,
+            sanitizedSettings);
+    }
+
+    public void InterceptResult(CommandContext context, CommandSettings settings, ref int result)
+    {
+        _stopwatch?.Stop();
+        logger.LogInformation(
+            "Finished execution of command: {CommandName} with result code: {ResultCode}. Duration: {ElapsedDuration}.",
+            context.Name,
+            result,
+            _stopwatch?.Elapsed);
+    }
+
+    private static readonly Dictionary<string, object?> EMPTY = new();
+
+    private static IReadOnlyDictionary<string, object?> SanitizeSettings(CommandSettings? settings)
+    {
+        if (settings == null)
+        {
+            return EMPTY;
+        }
+
+        return settings.GetType()
+            .GetProperties()
+            .Where(prop => prop.CanRead)
+            .ToDictionary(
+                prop => prop.Name,
+                prop => GetSanitizedPropertyValue(prop, settings) // Call helper method
+            );
+    }
+
+    private static object? GetSanitizedPropertyValue(PropertyInfo prop, CommandSettings? settings)
+    {
+        if (prop.GetCustomAttribute<SecretSettingAttribute>() != null)
+        {
+            return SecretMask;
+        }
+
+        var value = prop.GetValue(settings);
+        if (value is DirectoryInfo directoryInfo)
+        {
+            return directoryInfo.FullName;
+        }
+        // Add more type-specific handling here if needed in the future
+
+        return value;
+    }
+}

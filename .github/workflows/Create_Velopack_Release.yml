@@ -21,6 +21,7 @@ on:
     branches:
       - master
       - main
+      - release
       - develop
 
 jobs:
@@ -38,8 +39,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests, PublishToGitHubWithVelopack'
-        run: ./build.cmd Tests PublishToGitHubWithVelopack
+      - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
+        run: ./build.cmd PublishToGitHubWithVelopack --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ubuntu-latest:
@@ -56,7 +57,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests, PublishToGitHubWithVelopack'
-        run: ./build.cmd Tests PublishToGitHubWithVelopack
+      - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
+        run: ./build.cmd PublishToGitHubWithVelopack --SystemArchitecture arm64 --OperationSystem linux  --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

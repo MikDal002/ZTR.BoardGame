@@ -50,7 +50,7 @@ else
     if [[ -z ${DOTNET_VERSION+x} ]]; then
         "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --channel "$DOTNET_CHANNEL" --no-path
     else
-        "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "$DOTNET_VERSION" --no-path
+        "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --channel "$DOTNET_VERSION" --no-path
     fi
     export DOTNET_EXE="$DOTNET_DIRECTORY/dotnet"
     export PATH="$DOTNET_DIRECTORY:$PATH"
