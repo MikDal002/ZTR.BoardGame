@@ -20,7 +20,7 @@ public class BoardConnectionCheckerService(IHttpClientFactory httpClientFactory,
 {
     private const string BoardApiUrl = "api/board/health";
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Check Presence", "the board");
-    Task _backgroundTask;
+    Task? _backgroundTask;
     private bool _stopProcessing = false;
 
     public async Task CheckPresenceAsync(CancellationToken cancellationToken)
@@ -85,6 +85,9 @@ public class BoardConnectionCheckerService(IHttpClientFactory httpClientFactory,
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _stopProcessing = true;
-        await _backgroundTask;
+        if (_backgroundTask is not null)
+        {
+            await _backgroundTask;
+        }
     }
 }

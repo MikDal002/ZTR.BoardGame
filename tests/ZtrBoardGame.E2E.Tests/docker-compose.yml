@@ -6,6 +6,7 @@ services:
       - "${PC_SERVER_PORT}:${PC_SERVER_PORT}"
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:${PC_SERVER_PORT}
+      - urls=http://0.0.0.0:${PC_SERVER_PORT}
       - DOTNET_ENVIRONMENT=E2E
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${PC_SERVER_PORT}/api/boards"]
@@ -20,6 +21,7 @@ services:
       - "${BOARD1_PORT}:${BOARD1_PORT}"
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:${BOARD1_PORT}
+      - urls=http://0.0.0.0:${BOARD1_PORT}
       - DOTNET_ENVIRONMENT=E2E
       - BoardNetworkSettings__PcServerAddress=http://${PC_SERVER_HOST}:${PC_SERVER_PORT}
       - BoardNetworkSettings__BoardAddress=http://${BOARD1_HOST}:${BOARD1_PORT}
@@ -36,6 +38,7 @@ services:
       - "${BOARD2_PORT}:${BOARD2_PORT}"
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:${BOARD2_PORT}
+      - urls=http://0.0.0.0:${BOARD2_PORT}
       - DOTNET_ENVIRONMENT=E2E
       - BoardNetworkSettings__PcServerAddress=http://${PC_SERVER_HOST}:${PC_SERVER_PORT}
       - BoardNetworkSettings__BoardAddress=http://${BOARD2_HOST}:${BOARD2_PORT}

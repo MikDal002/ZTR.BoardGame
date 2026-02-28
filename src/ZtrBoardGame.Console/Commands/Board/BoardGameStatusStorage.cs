@@ -10,19 +10,25 @@ public interface IBoardGameStatusStorage
 
 public record StatusRecord
 {
-    private StatusRecord(bool StartGameRequested, FieldOrder FieldOrder)
+    private StatusRecord(bool StartGameRequested, FieldOrder? FieldOrder, bool HelloServiceEnded)
     {
         this.StartGameRequested = StartGameRequested;
         this.FieldOrder = FieldOrder;
+        this.HelloServiceEnded = HelloServiceEnded;
     }
 
-    public bool StartGameRequested { get; }
-    public FieldOrder FieldOrder { get; }
+    public bool StartGameRequested { get; private set; }
+    public bool HelloServiceEnded { get; private set; }
+    public FieldOrder? FieldOrder { get; private set; }
 
-    public static StatusRecord NotStarted => new(false, null);
-    public static StatusRecord Started(FieldOrder fieldOrder) => new(true, fieldOrder);
+    public static StatusRecord NotStarted => new(false, null, false);
 
-    public void Deconstruct(out bool StartGameRequested, out FieldOrder FieldOrder)
+    public StatusRecord StartRequested(FieldOrder fieldOrder) => this with { FieldOrder = fieldOrder, StartGameRequested = true };
+    public StatusRecord HelloServiceFinished() => this with { HelloServiceEnded = true };
+
+    public bool IsReadyToStart() => StartGameRequested && HelloServiceEnded && FieldOrder is not null;
+
+    public void Deconstruct(out bool StartGameRequested, out FieldOrder? FieldOrder)
     {
         StartGameRequested = this.StartGameRequested;
         FieldOrder = this.FieldOrder;

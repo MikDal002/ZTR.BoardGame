@@ -18,6 +18,7 @@ class OfflineGameStarter(IAnsiConsole console, IBoardGameStatusStorage boardGame
             .OrderBy(_ => Random.Shared.Next())
             .Take(options.Value.FieldsInPlay)
             .ToList();
-        boardGameStatusStorage.Set(StatusRecord.Started(new(list)));
+
+        boardGameStatusStorage.Set(StatusRecord.NotStarted.StartRequested(new(list)).HelloServiceFinished());
     }
 }

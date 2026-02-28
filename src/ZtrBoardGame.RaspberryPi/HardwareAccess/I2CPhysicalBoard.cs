@@ -9,8 +9,14 @@ interface IPhysicalBoard
     public IEnumerable<IField> GetFields();
 }
 
+public interface IPhysicalNotificator : IDisposable
+{
+    public Task BlinkRedAsync(TimeSpan time);
+    public Task BlinkGreenAsync(TimeSpan time);
+}
+
 #pragma warning disable S101
-class I2CPhysicalBoard : IPhysicalBoard, IDisposable
+class I2CPhysicalBoard : IPhysicalBoard, IPhysicalNotificator
 #pragma warning restore S101
 {
     private readonly List<IModule> _modules;
@@ -27,9 +33,7 @@ class I2CPhysicalBoard : IPhysicalBoard, IDisposable
     }
 
     public IEnumerable<IField> GetFields()
-    {
-        return _modules.SelectMany(m => m.GetFields());
-    }
+        => _modules.SelectMany(m => m.GetFields());
 
     public void Dispose()
     {
@@ -39,5 +43,27 @@ class I2CPhysicalBoard : IPhysicalBoard, IDisposable
         }
 
         _controller.Dispose();
+    }
+
+    public async Task BlinkRedAsync(TimeSpan time)
+    {
+        var fields = GetFields().ToList();
+        fields.ForEach(f => f.TurnLedsOff());
+
+        fields.ForEach(f => f.TurnLedsOn(Led.Red));
+        await Task.Delay(time);
+
+        fields.ForEach(f => f.TurnLedsOff());
+    }
+
+    public async Task BlinkGreenAsync(TimeSpan time)
+    {
+        var fields = GetFields().ToList();
+        fields.ForEach(f => f.TurnLedsOff());
+
+        fields.ForEach(f => f.TurnLedsOn(Led.Green));
+        await Task.Delay(time);
+
+        fields.ForEach(f => f.TurnLedsOff());
     }
 }

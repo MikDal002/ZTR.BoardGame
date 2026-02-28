@@ -13,6 +13,6 @@ class OnlineGameStarter(IAnsiConsole console, IBoardGameStatusStorage boardGameS
         {
             console.MarkupLine("[yellow]Czekanie na rozpoczêcie gry przez serwer...[/]");
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        } while (!boardGameStatusStorage.Get().StartGameRequested);
+        } while (!boardGameStatusStorage.Get().IsReadyToStart());
     }
 }

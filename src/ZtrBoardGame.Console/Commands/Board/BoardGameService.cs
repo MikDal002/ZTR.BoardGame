@@ -10,7 +10,7 @@ namespace ZtrBoardGame.Console.Commands.Board;
 
 internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IAnsiConsole console, IGameStarter gameStarter, IResultSender resultSender, IServiceProvider serviceProvider) : IHostedService, IDisposable
 {
-    Task _backgroundTask;
+    Task? _backgroundTask;
     private readonly CancellationTokenSource _canceler = new();
 
     public async Task MainGameLoop(CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
 
         using var serviceScope = serviceProvider.CreateScope();
         var gameStrategy = serviceScope.ServiceProvider.GetRequiredService<IGameStrategy>();
-        var delay = await gameStrategy.Do(boardGameStatusStorage.Get().FieldOrder);
+        var delay = await gameStrategy.Do(boardGameStatusStorage.Get().FieldOrder!);
 
         await FinishTheGame(cancellationToken, delay);
     }
@@ -45,7 +45,7 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
 
         await resultSender.SendResultsAsync(delay, cancellationToken);
 
-        boardGameStatusStorage.Set(StatusRecord.NotStarted);
+        boardGameStatusStorage.Set(StatusRecord.NotStarted.HelloServiceFinished());
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -64,12 +64,15 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
     {
         await _canceler.CancelAsync();
 
-        await _backgroundTask;
+        if (_backgroundTask is not null)
+        {
+            await _backgroundTask;
+        }
     }
 
     public void Dispose()
     {
-        _backgroundTask.Dispose();
+        _backgroundTask?.Dispose();
         _canceler.Dispose();
     }
 }

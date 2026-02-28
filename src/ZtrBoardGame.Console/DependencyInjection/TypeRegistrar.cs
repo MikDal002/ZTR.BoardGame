@@ -20,11 +20,12 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public IReadOnlyCollection<ServiceDescriptor> GetCopyOfServices() => _services.ToImmutableList();
 
-    public TypeRegistrar(bool enableConsoleLogging, IServiceCollection? serviceCollection = null)
+    public TypeRegistrar(bool enableConsoleLogging, HardwareConfigurationSettings hardwareConfigurationSettings,
+        IServiceCollection? serviceCollection = null)
     {
         _services = serviceCollection ?? new ServiceCollection();
 
-        var configuration = CreateConfiguration();
+        var configuration = CreateConfiguration(hardwareConfigurationSettings);
 
         ConfigureLogging(enableConsoleLogging, configuration);
         AddCommonServices(configuration);
@@ -39,6 +40,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
     {
         _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
         _services.Configure<BoardNetworkSettings>(configuration.GetSection(nameof(BoardNetworkSettings)));
+        _services.Configure<HardwareConfigurationSettings>(configuration.GetSection(nameof(HardwareConfigurationSettings)));
         _services.AddSingleton<IBoardStorage, BoardStorage>();
         _services.AddSingleton<IUpdateService, UpdateService>();
         _services.AddSingleton(AnsiConsole.Console);
@@ -55,12 +57,13 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
     }
 
-    IConfigurationRoot CreateConfiguration()
+    IConfigurationRoot CreateConfiguration(HardwareConfigurationSettings hardwareConfigurationSettings)
     {
         // --- Configuration Setup ---
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
+            .AddFromObject(nameof(HardwareConfigurationSettings), hardwareConfigurationSettings)
             // IF file doesn't exists run _build project first.
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
@@ -77,4 +80,19 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public void RegisterInstance(Type service, object implementation) => _services.AddSingleton(service, implementation);
     public void RegisterLazy(Type service, Func<object> factory) => _services.AddSingleton(service, _ => factory());
+}
+
+public static class ConfigurationExtensions
+{
+    public static IConfigurationBuilder AddFromObject<T>(this IConfigurationBuilder builder, string prefix, T obj)
+    {
+        var dict = new Dictionary<string, string?>();
+        foreach (var prop in typeof(T).GetProperties())
+        {
+            var value = prop.GetValue(obj)?.ToString() ?? string.Empty;
+            dict[prefix + ":" + prop.Name] = value;
+        }
+
+        return builder.AddInMemoryCollection(dict);
+    }
 }

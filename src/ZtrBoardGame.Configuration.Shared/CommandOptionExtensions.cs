@@ -5,13 +5,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using ZtrBoardGame.Console.Commands.Base;
+using ZtrBoardGame.Configuration.Shared;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
 public static class CommandOptionExtensions
 {
-    public static (string[] ProcessedArgs, bool EnableConsoleLogging) ProcessGlobalOptions(this string[] args)
+    public static (string[] ProcessedArgs, bool EnableConsoleLogging, HardwareConfigurationSettings hardwareConfigurationConfig) ProcessGlobalOptions(this string[] args)
     {
         var processedArgs = args.ToList();
 
@@ -45,7 +45,20 @@ public static class CommandOptionExtensions
             enableConsoleLogging = finalArgs.Contains(logConsoleOption);
         }
 
-        return (finalArgs, enableConsoleLogging);
+        // handle --auto-config
+        var autoConfigOption = GetLongOptionName<GlobalCommandSettings, bool>(s => s.AutomaticallyConfigureHardware);
+        var enableAutoConfig = false;
+        if (!string.IsNullOrEmpty(autoConfigOption))
+        {
+            enableAutoConfig = finalArgs.Contains(autoConfigOption);
+        }
+
+        var hardwareConfigurationConfig = new HardwareConfigurationSettings
+        {
+            DoAutoConfig = enableAutoConfig
+        };
+
+        return (finalArgs, enableConsoleLogging, hardwareConfigurationConfig);
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
+using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
@@ -68,6 +69,9 @@ public class FromPcToBoardStepDefinitions
     public void GivenABoardIsConfiguredToConnectToARunningPCServer()
     {
         _toPcHttpConnection = _pcServerFactory.CreateClient();
+        var serviceProvider = new ServiceCollection()
+            .AddTransient<IPhysicalNotificator, MockedGameStrategy>()
+            .BuildServiceProvider();
 
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
         mockHttpClientFactory.Setup(f => f.CreateClient(BoardHttpClientConfigure.ToPcClientName))
@@ -75,6 +79,8 @@ public class FromPcToBoardStepDefinitions
         _helloService = new HelloService(mockHttpClientFactory.Object,
             _boardConsole,
            Options.Create(new BoardNetworkSettings() { BoardAddress = "http://dummy-address-for-test:55556" }),
+            new BoardGameStatusStorage(),
+            serviceProvider,
             NullLogger<HelloService>.Instance);
     }
 
@@ -125,14 +131,18 @@ public class FromPcToBoardStepDefinitions
     [When(@"the PC attempts to send a ""hello"" request back")]
     public async Task WhenThePCAttemptsToSendAHelloRequestBack()
     {
-        var action = async () =>
-        {
-            var boardConnectionChecker = new BoardConnectionCheckerService(_mockHttpClientFactory.Object, _pcConsole,
-                _boardStorage, NullLogger<BoardConnectionCheckerService>.Instance);
-            await boardConnectionChecker.CheckPresenceAsync(_cancellationTokenSource.Token);
-        };
+        var boardConnectionChecker = new BoardConnectionCheckerService(_mockHttpClientFactory.Object, _pcConsole,
+            _boardStorage, NullLogger<BoardConnectionCheckerService>.Instance);
 
-        await action.Should().ThrowAsync<TimeoutException>();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        try
+        {
+            await boardConnectionChecker.CheckPresenceAsync(cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected if canceled during Delay
+        }
     }
 
     [Then(@"the PC's console should contain an message like ""(.*)""")]

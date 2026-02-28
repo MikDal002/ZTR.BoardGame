@@ -11,7 +11,7 @@ public static class BoardHttpClientConfigure
 {
     public const string ToPcClientName = "ToPcHttpClient";
     public static IServiceCollection ConfigureHelloServiceHttpClient(this IServiceCollection services,
-        HttpMessageHandler additionalHttpMessageHandler = null)
+        HttpMessageHandler? additionalHttpMessageHandler = null)
     {
         var httpClientBuilder = services.AddHttpClient(ToPcClientName, (serviceProvider, client) =>
         {

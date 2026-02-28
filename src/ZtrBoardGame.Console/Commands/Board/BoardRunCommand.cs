@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,8 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
+using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.RaspberryPi;
+using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.Console.Commands.Board;
 
@@ -60,8 +63,10 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
         if (builder.Environment.IsE2ETest())
         {
             builder.Services.AddSingleton<IGameStrategy, MockedGameStrategy>();
+            builder.Services.AddSingleton<IPhysicalNotificator, MockedGameStrategy>();
         }
 
+        builder.Services.AddValidatorsFromAssemblyContaining<GameStartRequestValidator>();
         builder.Services.AddSingleton<IHostedService, BoardGameService>();
         builder.Services.AddSingleton<IBoardGameStatusStorage, BoardGameStatusStorage>();
     }
