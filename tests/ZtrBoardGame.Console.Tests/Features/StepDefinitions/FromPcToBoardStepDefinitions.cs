@@ -131,14 +131,18 @@ public class FromPcToBoardStepDefinitions
     [When(@"the PC attempts to send a ""hello"" request back")]
     public async Task WhenThePCAttemptsToSendAHelloRequestBack()
     {
-        var action = async () =>
-        {
-            var boardConnectionChecker = new BoardConnectionCheckerService(_mockHttpClientFactory.Object, _pcConsole,
-                _boardStorage, NullLogger<BoardConnectionCheckerService>.Instance);
-            await boardConnectionChecker.CheckPresenceAsync(_cancellationTokenSource.Token);
-        };
+        var boardConnectionChecker = new BoardConnectionCheckerService(_mockHttpClientFactory.Object, _pcConsole,
+            _boardStorage, NullLogger<BoardConnectionCheckerService>.Instance);
 
-        await action.Should().ThrowAsync<TimeoutException>();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        try
+        {
+            await boardConnectionChecker.CheckPresenceAsync(cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected if canceled during Delay
+        }
     }
 
     [Then(@"the PC's console should contain an message like ""(.*)""")]

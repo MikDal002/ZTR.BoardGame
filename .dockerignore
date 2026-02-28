@@ -2,3 +2,12 @@
 **/.vscode
 **/bin
 **/obj
+.github
+.kilocode
+.roo
+.factory
+.devcontainer
+.editorconfig
+.gitattributes
+.gitignore
+.roomodes

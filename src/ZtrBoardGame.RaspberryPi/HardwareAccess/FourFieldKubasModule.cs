@@ -15,7 +15,7 @@ internal class FourFieldKubasModule : IModule
     private readonly object _i2cLock = new();
     private readonly object _fieldReadLock = new();
     readonly I2cDevice _device;
-    IField[] _fields;
+    IField[]? _fields;
     private bool _disposed;
 
     public FourFieldKubasModule(int address, GpioController controller, int interruptPinNumber)

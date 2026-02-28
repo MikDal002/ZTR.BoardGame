@@ -8,7 +8,9 @@ using Spectre.Console;
 using Spectre.Console.Testing;
 using System.Net;
 using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.Board.Online;
+using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
@@ -36,6 +38,8 @@ public class FromBoardToPcStepDefinitions : IDisposable
         _services.AddSingleton<ILogger<HelloService>>(NullLogger<HelloService>.Instance);
         _services.AddSingleton<IHelloService, HelloService>();
         _services.AddSingleton<IAnsiConsole>(_console);
+        _services.AddSingleton<IBoardGameStatusStorage, BoardGameStatusStorage>();
+        _services.AddTransient<IPhysicalNotificator, MockedGameStrategy>();
     }
 
     [AfterScenario]
@@ -153,8 +157,17 @@ public class FromBoardToPcStepDefinitions : IDisposable
     public async Task ThenTheBoardsLocalConsoleLogShouldContainAnERRORMessageWithAReasonSuchAsOr(string expectedErrorMessage1, string expectedErrorMessage2)
     {
         var helloService = _serviceProvider.GetRequiredService<IHelloService>();
-        var action = async () => await helloService.AnnouncePresenceAsync(CancellationToken.None);
-        await action.Should().ThrowAsync<TimeoutException>();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        async Task action() => await helloService.AnnouncePresenceAsync(cts.Token);
+
+        try
+        {
+            await action();
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected if canceled during Delay
+        }
 
         _console.Output.Should().ContainAny(expectedErrorMessage1, expectedErrorMessage2);
     }

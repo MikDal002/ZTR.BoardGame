@@ -21,7 +21,7 @@ public enum Led
 
 public interface IField
 {
-    public event EventHandler OnHallotronEngaged;
+    public event EventHandler? OnHallotronEngaged;
     public Hallotron GetHallotronStatus(bool invokeEvent = false);
     public void TurnLedsOn(params Led[] leds);
     public void TurnLedsOff();
@@ -40,7 +40,7 @@ internal class I2CField(I2cDevice device, object i2cLock, InternalFieldDefinitio
 
     public string Name => fieldDefinition.Name;
 
-    public event EventHandler OnHallotronEngaged;
+    public event EventHandler? OnHallotronEngaged;
 
     public Hallotron GetHallotronStatus(bool invokeEvent = false)
     {
