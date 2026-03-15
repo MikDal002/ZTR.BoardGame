@@ -23,6 +23,7 @@ on:
       - main
       - master
       - 'feature/*'
+      - release
 
 jobs:
   windows-latest:

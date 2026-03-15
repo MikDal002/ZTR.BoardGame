@@ -41,8 +41,8 @@ partial class Build
 
             Vpk.Invoke($"vpk [{OperationSystem}] pack -u {NameOfProjectToBePublished} -v {GitVersion.FullSemVer}" +
                        $" -p {PublishDirectory} --icon {iconPath} --outputDir {VelopackPublish}" +
-                       $" --runtime {OperationSystem}-{SystemArchitecture} --channel {Channel} --delta none"
-                       + $" --releaseNotes {releaseNotesFilePath}"
+                       $" --runtime {OperationSystem}-{SystemArchitecture} --channel {Channel} --delta none" +
+                       $" --releaseNotes {releaseNotesFilePath}"
                        );
         });
 

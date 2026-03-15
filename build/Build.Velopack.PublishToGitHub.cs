@@ -6,7 +6,7 @@ using Nuke.Common.Utilities;
 [GitHubActions(
     "Create Velopack Release",
     GitHubActionsImage.WindowsLatest, GitHubActionsImage.UbuntuLatest,
-    OnPushBranches = new[] { MasterBranch, MainBranch, DevelopBranch },
+    OnPushBranches = new[] { MasterBranch, MainBranch, DevelopBranch, ReleaseBranch },
     PublishArtifacts = true,
     FetchDepth = 0,
     InvokedTargets = new[] { nameof(UnitTests), nameof(PublishToGitHubWithVelopack) },
@@ -20,6 +20,8 @@ partial class Build
     const string MainBranch = "main";
     const string MasterBranch = "master";
     const string DevelopBranch = "develop";
+    const string ReleaseBranch = "release";
+
 
     [Parameter][Secret] readonly string GitHubToken;
     [Parameter] string GitHubBrowseUrl => GitRepository.ToString();
