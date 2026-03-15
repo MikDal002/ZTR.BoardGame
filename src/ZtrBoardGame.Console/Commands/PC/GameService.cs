@@ -30,7 +30,7 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
     public void RecordResults(Board board)
     {
-        _results[board] = board.GameResult;
+        _results[board] = board.GameResult!;
     }
 
     public async Task StartSessionAsync(CancellationToken cancellationToken)
