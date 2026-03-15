@@ -9,6 +9,7 @@ using System.IO;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Commands.PC;
+using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
 
@@ -47,6 +48,8 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<IBoardStatusStorage, BoardStatusStorage>();
         _services.AddSingleton<IGameService, GameService>();
         _services.AddSingleton<TypeRegistrar>(this);
+
+        _services.AddSingleton<ILiveGameDashboard, LiveGameDashboard>();
 
         _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
     }

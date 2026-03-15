@@ -6,12 +6,12 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Spectre.Console.Rendering;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
+using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.DependencyInjection;
 
 namespace ZtrBoardGame.Console.Commands.PC;
@@ -25,7 +25,7 @@ public class PcRunSettings : CommandSettings
     public bool NewUi { get; set; }
 }
 
-public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService) : CancellableAsyncCommand<PcRunSettings>
+public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService, ILiveGameDashboard liveGameDashboard) : CancellableAsyncCommand<PcRunSettings>
 {
 
     public override async Task<int> ExecuteAsync(CommandContext context, PcRunSettings runSettings, CancellationToken cancellationToken)
@@ -73,186 +73,7 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
 
     async Task NewPrompting(CancellationToken cancellationToken)
     {
-        await AnsiConsole.Live(new Text("Oczekiwanie na graczy..."))
-            .StartAsync(async ctx =>
-            {
-                do
-                {
-                    var gameStarted = false;
-                    var errorMessage = "";
-
-                    ClearInputBufferBeforeAwaitingPlayerStatus();
-                    do
-                    {
-
-                        var boards = boardStorage.GetAll().ToList();
-                        foreach (var board in boards)
-                        {
-                            board.Reset();
-                        }
-
-                        IRenderable rowsWithBoards;
-                        if (!boards.Any())
-                        {
-                            rowsWithBoards = new Panel("[grey]Oczekiwanie na połączenie przynajmniej jednej planszy...[/]")
-                            .Border(BoxBorder.None)
-                            .Padding(0, 1);
-                        }
-                        else
-                        {
-                            var rows = boards
-                                .Select(d => Ui.CreateBoardPanel(d))
-                                .ToArray();
-
-                            var splitRows = new Columns(rows);
-                            splitRows.Collapse();
-                            rowsWithBoards = splitRows;
-                        }
-
-                        var promptText = "[yellow]Oczekiwanie na graczy...[/]";
-                        if (boards.Any())
-                        {
-                            promptText += " Wciśnij [green]ENTER[/] lub [green]SPACJĘ[/] aby rozpocząć grę!";
-                        }
-
-                        if (!string.IsNullOrEmpty(errorMessage))
-                        {
-                            promptText += $"\n{errorMessage}";
-                        }
-
-                        var promptPanel = new Panel(promptText)
-                            .Border(BoxBorder.Double)
-                            .Expand();
-
-                        ctx.UpdateTarget(new Rows(rowsWithBoards,
-                            new Rule(),
-                            promptPanel
-                        ));
-
-                        while (System.Console.KeyAvailable)
-                        {
-                            var keyInfo = System.Console.ReadKey(intercept: true);
-                            var key = keyInfo.Key;
-
-                            if (key == ConsoleKey.Enter || key == ConsoleKey.Spacebar)
-                            {
-                                if (boards.Any())
-                                {
-                                    gameStarted = true;
-                                    errorMessage = "";
-                                }
-                                else
-                                {
-                                    errorMessage = "[red]Brak plansz! Naciśnij [green]ENTER[/] lub [green]SPACJĘ[/] gdy się pojawią, aby rozpocząć grę.[/]";
-                                }
-                            }
-                            else
-                            {
-                                errorMessage = "[red]Naciśnięto niewłaściwy klawisz.[/] Wciśnij [green]ENTER[/] lub [green]SPACJĘ[/].";
-                            }
-                        }
-
-                        await Task.Delay(200, cancellationToken);
-                    } while (!gameStarted && !cancellationToken.IsCancellationRequested);
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    await gameService.StartSessionAsync(cancellationToken);
-                    var task = gameService.AwaitResultsFromBoards(cancellationToken);
-
-                    do
-                    {
-                        var boards = boardStorage.GetAll().ToList();
-
-                        var rows = boards
-                            .Select(d => Ui.CreateBoardPanel(d))
-                            .ToArray();
-
-                        var splitRows = new Columns(rows);
-                        splitRows.Collapse();
-
-                        var withResult = boards.Count(d => d.GameResult is not null);
-
-                        var statusPanel =
-                            new Panel(
-                                    $"[blue]Gra w toku...[/] Pozostało do zebrania: {withResult} / {boardStorage.Count}")
-                                .Border(BoxBorder.Heavy);
-
-                        ctx.UpdateTarget(new Rows(splitRows,
-                            new Rule(),
-                            statusPanel
-                        ));
-
-                        await Task.Delay(500, cancellationToken);
-
-                    } while (!task.IsCompleted && !cancellationToken.IsCancellationRequested);
-
-                    await task;
-
-                    while (System.Console.KeyAvailable)
-                    {
-                        var _ = System.Console.ReadKey(intercept: true);
-                    }
-
-                    do
-                    {
-                        var finalBoards = boardStorage.GetAll().ToList();
-                        var sortedResults = finalBoards.Where(b => b.GameResult != null)
-                            .OrderBy(b => b.GameResult!.Duration).ToList();
-                        var resultTable = new Table().RoundedBorder().AddColumn("Miejsce").AddColumn("Board")
-                            .AddColumn("Czas (ms)");
-                        var place = 1;
-                        foreach (var b in sortedResults)
-                        {
-                            resultTable.AddRow(place.ToString(), b.Address.ToString(),
-                                b.GameResult!.Duration.TotalMilliseconds.ToString());
-                            place++;
-                        }
-
-                        var endPanel = new Panel(new Rows(
-                            new FigletText("Wyniki!"),
-                            resultTable,
-                            new Markup("\nWciśnij [yellow]dowolny klawisz[/], aby powrócić do Lobby...")
-                        )).Border(BoxBorder.Double).Expand();
-
-                        var boards = boardStorage.GetAll().ToList();
-
-                        var rows = boards
-                            .Select(d => Ui.CreateBoardPanel(d))
-                            .ToArray();
-
-                        var splitRows = new Columns(rows);
-                        splitRows.Collapse();
-
-                        ctx.UpdateTarget(new Rows(splitRows,
-                            new Rule(),
-                            endPanel
-                        ));
-
-                        if (!System.Console.KeyAvailable)
-                        {
-                            await Task.Delay(100, cancellationToken);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    } while (!cancellationToken.IsCancellationRequested);
-
-                    System.Console.Clear();
-                } while (!cancellationToken.IsCancellationRequested);
-            });
-    }
-
-    static void ClearInputBufferBeforeAwaitingPlayerStatus()
-    {
-        while (System.Console.KeyAvailable)
-        {
-            var _ = System.Console.ReadKey(intercept: true);
-        }
+        await liveGameDashboard.NewPrompting(cancellationToken);
     }
 
     async Task OldPrompting(CancellationToken cancellationToken)
@@ -345,50 +166,5 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
         app.MapControllers();
         await app.RunAsync(cancellationToken);
         return 0;
-    }
-}
-
-public static class Ui
-{
-    public static Renderable CreateBoardPanel(Board board)
-    {
-        board.GetHealthStatus(out var lastHeathCheck, out var duration);
-        var lastSeen = lastHeathCheck != null ? (DateTimeOffset.UtcNow - lastHeathCheck!).Value.TotalSeconds : 0;
-        var ping = duration?.TotalMilliseconds ?? 0;
-
-        var pingColor = ping < 50 ? "green" : (ping < 150 ? "yellow" : "red");
-        var healthText = $"Ostatnie połączenie [white]{lastSeen:F0} sek[/] temu (zajęło [{pingColor}]{ping:F0} ms[/])";
-
-        string statusText;
-        if (board.RequestedGameStartOn is null)
-        {
-            statusText = "[gray]Oczekiwanie na rozpoczęcie gry...[/]";
-        }
-        else
-        {
-            statusText = $"[yellow]Gra w toku od {DateTimeOffset.Now - board.RequestedGameStartOn}...[/]";
-        }
-
-        var hasResult = board.GameResult is not null;
-        if (hasResult)
-        {
-            statusText = $"[green]Otrzymano wyniki! (zajęło {board.GameResult!.Duration:m\\:ss})[/]";
-        }
-
-        var rows = new Rows(
-            new Markup(healthText),
-            new Markup(string.Empty),
-            new Markup(statusText),
-            new Markup(board.DescriptionStatus ?? string.Empty)
-        );
-
-        var borderStyle = hasResult ? Style.Parse("green") : (ping < 150 ? Style.Parse("blue") : Style.Parse("red"));
-
-        var panel = new Panel(rows)
-            .Header(new PanelHeader(board.Address.ToString(), Justify.Left))
-            .BorderColor(borderStyle.Foreground)
-            .Padding(2, 1);
-
-        return panel;
     }
 }

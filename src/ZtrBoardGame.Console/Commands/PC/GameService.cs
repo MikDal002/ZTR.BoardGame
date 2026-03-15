@@ -30,7 +30,6 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
     public void RecordResults(Board board)
     {
-        //console.MarkupLine($"Received game status from board: {board.Address}");
         _results[board] = board.GameResult;
     }
 
