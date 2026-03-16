@@ -11,7 +11,7 @@ public record ResilienceSettings(int MaxRetries, TimeSpan Delay, string Operatio
 
 public static class ResilienceHelper
 {
-    public static async Task<bool> InvokeWithRetryAsync(Func<Task> func, ResilienceSettings settings, IAnsiConsole console, ILogger logger, CancellationToken cancellationToken, Uri? targetAddress)
+    public static async Task<bool> InvokeWithRetryAsync(Func<Task> func, ResilienceSettings settings, IAnsiConsole console, ILogger logger, CancellationToken cancellationToken, Uri? targetAddress, Action<Exception>? onError = null)
     {
         var trials = settings.MaxRetries;
 
@@ -39,6 +39,8 @@ public static class ResilienceHelper
                 logger.LogError(e, "An unexpected error occurred during {Operation} to {TargetName}", settings.OperationName, settings.TargetName);
                 prevException = e;
             }
+
+            onError?.Invoke(prevException);
 
             trials--;
             if (trials <= 0)

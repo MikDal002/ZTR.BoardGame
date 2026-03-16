@@ -28,7 +28,8 @@ public static class LoggerSetup
         }
 
         var loggerConfiguration = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration);
+            .ReadFrom.Configuration(configuration)
+            .WriteTo.Debug();
 
         if (enableConsoleLogging)
         {

@@ -41,14 +41,16 @@ public class BoardsController(IBoardStorage boardStorage, IGameService gameServi
         logger.LogInformation("Received hello from board");
         console.MarkupLine($"Received hello from board {boardIpAddress}");
 
-        boardStorage.Add(boardIpAddress);
+        boardStorage.Add(new(boardIpAddress));
         return Ok();
     }
 
     [HttpPost("game/status")]
     public IActionResult PostGameStatus([FromQuery] string responseAddress, [FromQuery] TimeSpan result)
     {
-        gameService.RecordResults(new Board(new Uri(responseAddress)), new GameResult(result));
+        var board = boardStorage.Get(new Uri(responseAddress));
+        board.SetGameResults(new GameResult(result), DateTimeOffset.Now);
+        gameService.RecordResults(board);
         logger.LogInformation("Received game status from board: {Board}", responseAddress);
         return Ok();
     }

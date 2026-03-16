@@ -125,7 +125,7 @@ public class FromPcToBoardStepDefinitions
     [When(@"the PC receives a ""hello"" request from Board")]
     public void WhenThePCReceivesAHelloRequestFromBoard()
     {
-        _boardStorage.Add(new Uri("http://127.0.0.1:8080"));
+        _boardStorage.Add(new Board(new Uri("http://127.0.0.1:8080")));
     }
 
     [When(@"the PC attempts to send a ""hello"" request back")]

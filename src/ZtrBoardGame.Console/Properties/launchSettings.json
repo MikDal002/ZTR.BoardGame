@@ -2,7 +2,7 @@
   "profiles": {
     "ZtrBoardGame.Console": {
       "commandName": "Project",
-      "commandLineArgs": "pc run"
+      "commandLineArgs": "pc run --new-ui"
     }
   }
 }

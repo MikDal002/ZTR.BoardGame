@@ -12,13 +12,15 @@ using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 
-public record Board(Uri Address);
 public record GameResult(TimeSpan Duration);
 
 public interface IGameService
 {
     Task StartSessionAsync(CancellationToken cancellationToken);
-    void RecordResults(Board board, GameResult result);
+    void RecordResults(Board board);
+    void ShowLeaderBoard();
+    bool AreAllResultsReceived();
+    Task AwaitResultsFromBoards(CancellationToken cancellationToken);
 }
 
 public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttpClientFactory httpClientFactory, ILogger<GameService> logger) : IGameService
@@ -26,22 +28,18 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
     readonly ConcurrentDictionary<Board, GameResult> _results = new();
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Check Presence", "the board");
 
-    public void RecordResults(Board board, GameResult result)
+    public void RecordResults(Board board)
     {
-        console.MarkupLine($"Received game status from board: {board.Address}");
-        _results.TryAdd(board, result);
+        _results[board] = board.GameResult!;
     }
 
     public async Task StartSessionAsync(CancellationToken cancellationToken)
     {
+        _results.Clear();
         await RequestStartOnBoards(cancellationToken);
-
-        await AwaitResultsFromBoards(cancellationToken);
-
-        ShowLeaderBoard();
     }
 
-    void ShowLeaderBoard()
+    public void ShowLeaderBoard()
     {
         var sorted = _results.OrderBy(kv => kv.Value.Duration).ToList();
 
@@ -62,17 +60,19 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
         AnsiConsole.Write(new FigletText("Wyniki"));
         AnsiConsole.Write(table);
-
-        _results.Clear();
     }
 
-    async Task AwaitResultsFromBoards(CancellationToken cancellationToken)
+    public async Task AwaitResultsFromBoards(CancellationToken cancellationToken)
     {
         do
         {
-            AnsiConsole.MarkupLine($"[grey]Oczekiwanie na wyniki od graczy[/]");
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-        } while (_results.Count != boardStorage.Count);
+        } while (!AreAllResultsReceived());
+    }
+
+    public bool AreAllResultsReceived()
+    {
+        return boardStorage.Count > 0 && _results.Count == boardStorage.Count;
     }
 
     async Task RequestStartOnBoards(CancellationToken cancellationToken)
@@ -84,8 +84,9 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
         var gameRequest = new GameStartRequest(fields);
 
-        await Parallel.ForEachAsync(boardStorage.GetAllAddresses(), cancellationToken, async (boardAddress, cancellationToken) =>
+        await Parallel.ForEachAsync(boardStorage.GetAll(), cancellationToken, async (board, cancellationToken) =>
         {
+            var boardAddress = board.Address;
             var httpClient = httpClientFactory.CreateClient();
             using var _ = logger.BeginScopeWith(("BoardAddress", boardAddress.ToString()));
 
@@ -97,7 +98,13 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
                     cancellationToken);
                 response.EnsureSuccessStatusCode();
                 logger.LogInformation("Successfully started game on Board");
-            }, ResilienceSettings, console, logger, cancellationToken, boardAddress);
+                board.GameStartRequested(DateTimeOffset.Now);
+                board.SetDescriptionStatus(null);
+            }, ResilienceSettings, console, logger, cancellationToken, boardAddress,
+                onError: ex =>
+                {
+                    board.SetDescriptionStatus(ex.Message);
+                });
 
         });
     }

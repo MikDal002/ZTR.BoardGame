@@ -3,7 +3,7 @@ using Nuke.Common.CI.GitHubActions;
 [GitHubActions("For each PR",
     GitHubActionsImage.WindowsLatest, GitHubActionsImage.UbuntuLatest, OnPullRequestBranches = new[]
     {
-        DevelopBranch, MainBranch, MasterBranch, "feature/*"
+        DevelopBranch, MainBranch, MasterBranch, "feature/*", ReleaseBranch
     },
     PublishArtifacts = false,
     FetchDepth = 0,
