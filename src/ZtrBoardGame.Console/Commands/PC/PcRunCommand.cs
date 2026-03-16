@@ -129,6 +129,12 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
 
         console.MarkupLine($"[green]Starting game for [/] {boardStorage.Count} players.");
         await gameService.StartSessionAsync(cancellationToken);
+        do
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        } while (!gameService.AreAllResultsReceived() && !cancellationToken.IsCancellationRequested);
+
+        gameService.ShowLeaderBoard();
     }
 
     private async Task<int> RunWebServer(CommandContext context, CancellationToken cancellationToken)
