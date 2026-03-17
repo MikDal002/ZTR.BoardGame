@@ -3,8 +3,6 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Threading.Tasks;
 using Velopack;
-using Velopack.Locators;
-using Velopack.Windows;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.DependencyInjection;
@@ -16,20 +14,11 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-#pragma warning disable CA1416 // Walidacja zgodnoci z platform
         VelopackApp.Build()
-            .OnAfterInstallFastCallback((v) =>
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                var shortcuts = new Velopack.Windows.Shortcuts();
-#pragma warning restore CS0618 // Type or member is obsolete
-                shortcuts.CreateShortcut(VelopackLocator.Current.ThisExeRelativePath, ShortcutLocation.Desktop, false, "pc run");
-                shortcuts.CreateShortcut(VelopackLocator.Current.ThisExeRelativePath, ShortcutLocation.Desktop, false, "version update");
-            })
             .Run();
-#pragma warning restore CA1416 // Walidacja zgodnoci z platform
 
         var (processedArgs, enableConsoleLogging, hardwareConfigurationSettings) = args.ProcessGlobalOptions();
+        processedArgs = ApplyDefaultWindowsArguments(processedArgs);
 
         var typeRegistrar = new TypeRegistrar(enableConsoleLogging, hardwareConfigurationSettings);
         var app = new CommandApp(typeRegistrar);
@@ -66,6 +55,22 @@ public static class Program
         });
 
         return await app.RunAsync(processedArgs);
+    }
+
+    private static string[] ApplyDefaultWindowsArguments(string[] args)
+    {
+        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
+                .Windows))
+        {
+            return args;
+        }
+
+        if (args.Length == 0)
+        {
+            return ["pc", "run", "--new-ui"];
+        }
+
+        return args;
     }
 }
 
