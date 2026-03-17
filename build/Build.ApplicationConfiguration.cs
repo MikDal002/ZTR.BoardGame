@@ -19,18 +19,7 @@ public partial class Build
         .Unlisted()
         .Executes(() =>
         {
-            Log.Information($"[DEBUG] Starting ConfigureAppSettings.");
             var appSettingsPath = ProjectToPublish.Directory / "appsettings.json";
-            Log.Information($"[DEBUG] App settings path resolved to: '{appSettingsPath}'");
-            Log.Information($"[DEBUG] Does file exist? {File.Exists(appSettingsPath)}");
-
-            if (File.Exists(appSettingsPath))
-            {
-                var originalContent = File.ReadAllText(appSettingsPath);
-                Log.Information($"[DEBUG] Original content length: {originalContent.Length} chars");
-                Log.Information($"[DEBUG] Original content preview (first 100 chars): {new string(originalContent.Take(100).ToArray())}...");
-            }
-            
             var (determinedUpdateUrl, determinedUseGitHubSource, determinedFetchPrereleases) = GetTargetSpecificUpdateOptions();
 
             if (determinedUpdateUrl == null)
@@ -48,7 +37,8 @@ public partial class Build
                 using var fileStream = File.OpenRead(appSettingsPath);
                 try
                 {
-                    rootNode = JsonNode.Parse(fileStream);
+                    var documentOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip };
+                    rootNode = JsonNode.Parse(fileStream, new JsonNodeOptions(), documentOptions);
                     Log.Information($"Read existing settings from '{appSettingsPath}'.");
                 }
                 catch (JsonException ex)
@@ -80,12 +70,7 @@ public partial class Build
             updateOptionsNode[nameof(UpdateOptions.FetchPrereleases)] = determinedFetchPrereleases;
 
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-            var finalJsonString = rootNode.ToJsonString(jsonOptions);
-            
-            Log.Information($"[DEBUG] Final JSON string length: {finalJsonString.Length} chars");
-            Log.Information($"[DEBUG] Final JSON content preview (first 100 chars): {new string(finalJsonString.Take(100).ToArray())}...");
-            
-            File.WriteAllText(appSettingsPath, finalJsonString);
+            File.WriteAllText(appSettingsPath, rootNode.ToJsonString(jsonOptions));
             Log.Information($"Configured update settings in '{appSettingsPath}'.");
         });
 

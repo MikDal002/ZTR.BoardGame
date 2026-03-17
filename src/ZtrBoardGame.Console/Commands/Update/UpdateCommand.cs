@@ -37,7 +37,7 @@ public class UpdateCommand(IUpdateService updateService) : CancellableAsyncComma
             AnsiConsole.MarkupLine("[green]You are already using the latest version.[/]");
             return 0;
         }
-        
+
         AnsiConsole.MarkupLine($"[yellow]A new version is available: {newVersion.TargetFullRelease.Version}[/]");
 
         foreach (var intermediateVersion in newVersion.DeltasToTarget.Concat([newVersion.TargetFullRelease]))
