@@ -37,7 +37,8 @@ public partial class Build
                 using var fileStream = File.OpenRead(appSettingsPath);
                 try
                 {
-                    rootNode = JsonNode.Parse(fileStream);
+                    var documentOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip };
+                    rootNode = JsonNode.Parse(fileStream, new JsonNodeOptions(), documentOptions);
                     Log.Information($"Read existing settings from '{appSettingsPath}'.");
                 }
                 catch (JsonException ex)

@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
@@ -39,15 +40,18 @@ public class UpdateCommand(IUpdateService updateService) : CancellableAsyncComma
 
         AnsiConsole.MarkupLine($"[yellow]A new version is available: {newVersion.TargetFullRelease.Version}[/]");
 
-        if (!string.IsNullOrWhiteSpace(newVersion.TargetFullRelease.NotesMarkdown))
+        foreach (var intermediateVersion in newVersion.DeltasToTarget.Concat([newVersion.TargetFullRelease]))
         {
-            AnsiConsole.WriteLine();
-            var panel = new Panel(new Text(newVersion.TargetFullRelease.NotesMarkdown))
-                .Header("Release Notes")
-                .Border(BoxBorder.Rounded)
-                .Expand();
-            AnsiConsole.Write(panel);
-            AnsiConsole.WriteLine();
+            if (!string.IsNullOrWhiteSpace(intermediateVersion.NotesMarkdown))
+            {
+                AnsiConsole.WriteLine();
+                var panel = new Panel(new Text(intermediateVersion.NotesMarkdown))
+                    .Header($"Release Notes {intermediateVersion.Version}")
+                    .Border(BoxBorder.Rounded)
+                    .Expand();
+                AnsiConsole.Write(panel);
+                AnsiConsole.WriteLine();
+            }
         }
 
         if (!settings.Update)
