@@ -22,7 +22,6 @@ partial class Build
     const string DevelopBranch = "develop";
     const string ReleaseBranch = "release";
 
-
     [Parameter][Secret] readonly string GitHubToken;
     [Parameter] string GitHubBrowseUrl => GitRepository.ToString();
 
