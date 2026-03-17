@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="src/ZtrBoardGame.Console/applogo.svg" alt="ZTR.BoardGame Logo" width="200" height="200">
+  <h1>ZTR.BoardGame</h1>
+  <p>Projekt małej gry interaktywnej z fizycznymi modułami (Raspberry Pi).</p>
+</div>
+
 Generowanie kluczy SSH
 ========
 
@@ -12,23 +18,27 @@ Projekt małej gry interaktywnej.
 Instalacja/konfiguracji
 ========
 
-## Krótkie sprawdzenie instalacji na Raspberry Pi
+## Instalacja na Raspberry Pi
 
-1. Pobierz najnowszą wersję z strony Releases (po prawej, https://github.com/MikDal002/ZTR.BoardGame/releases) 
-   . .AppImage dla raspberry pi,
-   . np .zip dla Windows,
-2. Wrzuć AppImage na Raspberry Pi (np. do katalogu /home/pi/),
-1. Skopiuj plik appsettings.json do tego samego katalogu, co aplikacja.
-1. Nadaj uprawnienia do uruchamiania:
+1. Pobierz najnowszą wersję z Releases dla arm (https://github.com/MikDal002/ZTR.BoardGame/releases)
+2. Skopiuj AppImage na Raspberry Pi (np. /home/pi/ lub /home/mikolaj/)
+3. Skopiuj appsettings.json do tego samego katalogu
+4. Nadaj uprawnienia:
    ```bash
-   chmod +x /home/piZtrBoardGame.Console-linux-arm64-alpha.AppImage
+   chmod +x /home/mikolaj/ZtrBoardGame.Console-linux-arm64-alpha.AppImage
    ```
-1. Sprawdź, jakie moduły zostały podłączone do Raspberry Pi używając komendy:
+5. Uruchom aplikację po raz pierwszy, aby ta skonfigurowała wszystko:
    ```bash
+   sudo ./ZtrBoardGame.Console-linux-arm64-alpha.AppImage board run --no-server
+   ```
+5. Sprawdź podłączone moduły:
+   ```bash
+   sudo apt update
+   sudo apt install i2c-tools
    i2cdetect -y 1
    ```
    Powinieneś zobaczyć coś takiego:
-   ```bash
+   ```
         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
    00:                         -- -- -- -- -- -- -- --
    10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -41,7 +51,7 @@ Instalacja/konfiguracji
     ```
 
     W tym przykładzie widzimy, że podłączone są moduły o adresach 0x21, 0x22, 0x24 i 0x26.
-1. Skonfiguruj plik appsettings.json zgodnie z potrzebami (adresy modułów, itp.).  
+6. Skonfiguruj appsettings.json:
    ```json
    "PhysicalBoardSettings": {
         // You can find your addresses using i2cdetect -y 1
@@ -49,8 +59,18 @@ Instalacja/konfiguracji
         "InterruptPinNumber": 4
       },
    ```
-1. Upewnij się, że gra działa uruchamiając ją w trybie bez serwera (offline):
-  `./ZtrBoardGame.Console-linux-arm64-alpha.AppImage board run --no-server`
+7. Upewnij się, że gra działa w trybie offline:
+   ```bash
+   sudo ./ZtrBoardGame.Console-linux-arm64-alpha.AppImage board run --no-server
+   ```
+8. Od tego momentu gra powinno uruchomić się automatycznie po starcie w trybie serwerowym.
+9. Skonfiguruj niezbędne rzeczy, jak adresy w appsettings.json:
+   ```json
+   "BoardNetworkSettings": {
+    "PcServerAddress": "http://pcmr.local:5000",
+    "BoardAddress":  "http://raspberrypi03:5000"
+   }
+   ```
 
 ## Utworzenie niezależnej sieci lokalnej WiFi na Raspberry Pi
 Jeśli chcesz, aby Raspberry Pi działało jako samodzielna jednostka bez dostępu do internetu, możesz skonfigurować je jako punkt dostępowy WiFi. Poniżej znajdziesz kroki, jak to zrobić:
@@ -58,23 +78,24 @@ Jeśli chcesz, aby Raspberry Pi działało jako samodzielna jednostka bez dostę
 1. Oznacz jedno raspberry pi, jako master, a wszystkie pozostałe skonfiguruj w ten sposób, aby się z nim łączyły. 
 
 
-## Konfiguracja automatycznego startu aplikacji w trybie sieciowym. 
+ 
 
 ## Konfiguracja serwera:
 1. Ustaw nazwę komputera, na którym znajduje się serwer na PCMR.
-1. Uruchom ściągniętą aplikację.
-1. Dostosuj appsettings.json.
+2. Pobierz najnowszą wersję z Releases dla windows (https://github.com/MikDal002/ZTR.BoardGame/releases)
+3. Uruchom ściągniętą aplikację.
+4. Dostosuj appsettings.json (np. ten: https://github.com/MikDal002/ZTR.BoardGame/blob/release/src/ZtrBoardGame.Console/appsettings.json, dodaj wpis `"urls": "http://0.0.0.0:5000"` .
+5. Uruchom aplikacje `pc run`
 
-Inne ciekawe szablony
-========
-
-Tutaj prezentuję listę szablonów, które również warto rozważyć przy zaczynaniu nowych projektów:
+## Zasoby projektu
 
 - https://github.com/Dotnet-Boxed/Templates/ - w tym projekcie są fajnie rozwinięte projekty aplikacji serwerowych (API, GraphQL, Orleans)
 
+## Zewnętrzne zasoby
+
 - https://github.com/dotnet/templating/wiki/Available-templates-for-dotnet-new - lista różnych projektów z szablonami
 
-## Branching Strategy and Versioning
+## Wersjonowanie
 
 This project uses a GitFlow-inspired branching model, automated with GitVersion. This ensures consistent versioning and a clear workflow for development, features, and fixes.
 
