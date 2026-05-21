@@ -9,8 +9,10 @@ public class HardwareCheckInterceptor(IAnsiConsole console, ISystemConfiguratorO
 {
     public void Intercept(CommandContext context, CommandSettings settings)
     {
-        var systemWhichNeedsConfiguration = systemConfiguratorOrchestrator.GetSystemsWhichNeedsConfigurationAsync()
+
+        var systemWhichNeedsConfiguration = systemConfiguratorOrchestrator.GetSystemsWhichNeedsConfiguration()
             .ToListAsync()
+            // Unfortunately, Spectre.Console does not support async interceptors, so we have to block the thread here.
             .GetAwaiter().GetResult();
 
         if (systemWhichNeedsConfiguration.Count == 0)

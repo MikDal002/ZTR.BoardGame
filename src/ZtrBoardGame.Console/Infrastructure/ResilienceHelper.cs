@@ -29,9 +29,14 @@ public static class ResilienceHelper
                 logger.LogError(e, "Failed to {Operation} to {TargetName}", settings.OperationName, settings.TargetName);
                 prevException = e;
             }
+            catch (TaskCanceledException e) when (!cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(e, "{Operation} to {TargetName} timed out (TaskCanceledException), retrying...", settings.OperationName, settings.TargetName);
+                prevException = e;
+            }
             catch (TaskCanceledException e)
             {
-                logger.LogInformation(e, "{Operation} task was canceled.", settings.OperationName);
+                logger.LogInformation(e, "{Operation} task was canceled by user or system.", settings.OperationName);
                 return false;
             }
             catch (Exception e)
@@ -45,12 +50,15 @@ public static class ResilienceHelper
             trials--;
             if (trials <= 0)
             {
+                logger.LogError(prevException, "Failed to {Operation} to {TargetName} over {MaxRetries} times. Giving up.", settings.OperationName, settings.TargetName, settings.MaxRetries);
                 throw new TimeoutException($"Failed to {settings.OperationName} to {settings.TargetName} over {settings.MaxRetries} times.", prevException);
             }
 
+            logger.LogDebug("Waiting {Delay} before next attempt to {Operation}", settings.Delay, settings.OperationName);
             await Task.Delay(settings.Delay, cancellationToken);
         }
 
+        logger.LogInformation("{Operation} was canceled (cancellationToken).", settings.OperationName);
         return false;
     }
 }

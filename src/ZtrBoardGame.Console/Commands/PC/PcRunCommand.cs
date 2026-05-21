@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
@@ -141,7 +140,6 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
     {
         var builder = WebApplication.CreateBuilder(context.Arguments.ToArray());
         builder.Logging.ClearProviders();
-        builder.Logging.AddSerilog();
 
         foreach (var copyOfService in typeRegistrar.GetCopyOfServices())
         {

@@ -13,7 +13,7 @@ namespace ZtrBoardGame.Console.Commands.Board.Online;
 
 class OnlineResultSender(IAnsiConsole console, IHttpClientFactory httpClientFactory, IOptions<BoardNetworkSettings> serverAddressProvider, ILogger<OnlineResultSender> logger) : IResultSender
 {
-    private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
+    private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Send Results", "the server");
 
     public async Task SendResultsAsync(TimeSpan delay, CancellationToken cancellationToken)
     {
@@ -37,9 +37,14 @@ class OnlineResultSender(IAnsiConsole console, IHttpClientFactory httpClientFact
 
         var urlEncode = WebUtility.UrlEncode(serverAddressProvider.Value.BoardAddress);
         var resultEncoded = WebUtility.UrlEncode(delay.ToString());
-        var response = await httpClient.PostAsync(
-            $"/api/boards/game/status?responseAddress={urlEncode}&result={resultEncoded}", null,
-            cancellationToken);
+        var requestUrl = $"/api/boards/game/status?responseAddress={urlEncode}&result={resultEncoded}";
+
+        logger.LogInformation("Attempting to send results to {RequestUrl}", requestUrl);
+
+        var response = await httpClient.PostAsync(requestUrl, null, cancellationToken);
+
+        logger.LogInformation("Received response from server: {StatusCode}", response.StatusCode);
+
         response.EnsureSuccessStatusCode();
         console.MarkupLine($"[green]Results sent to the server[/]");
         logger.LogInformation("Successfully sent results to the server");
