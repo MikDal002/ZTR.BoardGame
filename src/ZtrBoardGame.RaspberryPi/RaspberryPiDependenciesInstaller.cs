@@ -24,6 +24,7 @@ public static class RaspberryPiDependenciesInstaller
         services.AddSingleton<ISystemConfigurer, ConfigureAvahi>();
         services.AddSingleton<ISystemConfigurer, I2CConfigurer>();
         services.AddSingleton<ISystemConfigurer, BootConfigSystemConfigurer>();
+        services.AddSingleton<ISystemConfigurer, UsbPowerSystemConfigurer>();
         return services;
     }
 }
