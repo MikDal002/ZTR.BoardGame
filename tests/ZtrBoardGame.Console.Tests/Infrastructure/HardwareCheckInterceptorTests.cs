@@ -3,7 +3,7 @@ using Moq;
 using Spectre.Console.Testing;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
-using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Tests.Infrastructure;
 

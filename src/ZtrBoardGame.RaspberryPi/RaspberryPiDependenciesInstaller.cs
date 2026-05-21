@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.RaspberryPi;
 
@@ -17,9 +18,12 @@ public static class RaspberryPiDependenciesInstaller
         return services;
     }
 
-    public static IServiceCollection AddRaspberryPiHardwareConfigurer(this IServiceCollection services)
+    public static IServiceCollection AddRaspberryPiHardwareConfigurers(this IServiceCollection services)
     {
-        services.AddSingleton<ISystemConfigurer, ConfigureRaspberryPi>();
+        services.AddSingleton<ISystemConfigurer, ConfigureSystemd>();
+        services.AddSingleton<ISystemConfigurer, ConfigureAvahi>();
+        services.AddSingleton<ISystemConfigurer, I2CConfigurer>();
+        services.AddSingleton<ISystemConfigurer, BootConfigSystemConfigurer>();
         return services;
     }
 }

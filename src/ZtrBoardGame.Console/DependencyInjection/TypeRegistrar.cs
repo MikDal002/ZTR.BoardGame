@@ -12,7 +12,7 @@ using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
-using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
 
@@ -33,7 +33,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         AddCommonServices(configuration);
 
         _services.AddRaspberryPiGameStrategy(configuration);
-        _services.AddRaspberryPiHardwareConfigurer();
+        _services.AddRaspberryPiHardwareConfigurers();
 
         _services.ConfigureHelloServiceHttpClient();
     }

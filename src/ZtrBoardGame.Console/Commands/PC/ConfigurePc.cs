@@ -2,12 +2,14 @@ using Spectre.Console;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 
 public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
 {
+    public string Name { get; } = "Nazwa komputera";
+
     public bool CanConfigure()
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

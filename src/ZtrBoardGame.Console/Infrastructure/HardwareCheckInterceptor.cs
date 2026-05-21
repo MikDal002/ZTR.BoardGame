@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ZtrBoardGame.Configuration.Shared;
-using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
@@ -48,13 +48,13 @@ public class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareCon
                 try
                 {
                     AnsiConsole.Status()
-                        .Start("Configuring system...", ctx =>
+                        .Start($"Configuring {configurer.Name}...", ctx =>
                         {
                             configurer.Configure();
                             Thread.Sleep(500);
                         });
 
-                    console.MarkupLine("[green]System configured successfully.[/]");
+                    console.MarkupLine($"[green]{configurer.Name} configured successfully.[/]");
                 }
                 catch (Exception e)
                 {

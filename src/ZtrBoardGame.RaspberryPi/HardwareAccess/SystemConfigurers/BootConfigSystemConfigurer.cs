@@ -1,0 +1,111 @@
+﻿using Microsoft.Extensions.Logging;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+
+namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
+
+class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : ISystemConfigurer
+{
+    private const string ConfigPath = "/boot/firmware/config.txt";
+
+    private readonly List<(string Key, string Value)> _configBlocks =
+    [
+        ("arm_freq", "1500"),
+        // 2. Wylaczenie modulu Bluetooth.
+        //    Zaoszczedzi kilkadziesiat miliamperow dzialajacych w tle
+        ("dtoverlay", "disable-bt"),
+        // 3. Wylaczenie ukladu graficznego HDMI.
+        //    Karta graficzna bedzie uspiona, co znacznie obniza bazowy pobor pradu.
+        //    (W RPi 5 zamiast hdmi_blanking, bezpieczniej calkiem wylaczyc inicjalizacje video)
+        ("hdmi_ignore_hotplug", "1")
+    ];
+
+    public bool CanConfigure()
+        => RaspberryPiSystemInfo.IsRaspberryPi();
+
+    public bool IsConfigurationNeeded()
+    {
+        if (!File.Exists(ConfigPath))
+        {
+            logger.LogError("Config file not found: {Path}", ConfigPath);
+            return false;
+        }
+
+        try
+        {
+            var lines = File.ReadAllLines(ConfigPath);
+            foreach (var setting in _configBlocks)
+            {
+                var expectedLine = $"{setting.Key}={setting.Value}";
+                if (lines.Any(l => l.Trim() == expectedLine))
+                {
+                    continue;
+                }
+
+                logger.LogInformation("Setting {Setting} is missing or different in {Path}", expectedLine, ConfigPath);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Could not read config file: {Path}", ConfigPath);
+            return false;
+        }
+
+        return false;
+    }
+
+    public void Configure()
+    {
+        logger.LogInformation("Updating Raspberry Pi hardware configuration in {Path}...", ConfigPath);
+
+        try
+        {
+            var lines = File.ReadAllLines(ConfigPath).ToList();
+            var modified = false;
+
+            foreach (var block in _configBlocks)
+            {
+                var key = block.Key;
+                var value = block.Value;
+                var expectedLine = $"{key}={value}";
+
+                var existingLineIndex = lines.FindIndex(l => l.Trim().StartsWith($"{key}="));
+
+                if (existingLineIndex != -1)
+                {
+                    if (lines[existingLineIndex].Trim() == expectedLine)
+                    {
+                        continue;
+                    }
+
+                    logger.LogInformation("Updating existing setting: {Old} -> {New}", lines[existingLineIndex], expectedLine);
+                    lines[existingLineIndex] = expectedLine;
+                    modified = true;
+                }
+                else
+                {
+                    logger.LogInformation("Adding missing setting block for: {Key}", key);
+                    lines.Add(expectedLine);
+                    modified = true;
+                }
+            }
+
+            if (modified)
+            {
+                File.WriteAllLines(ConfigPath, lines);
+                logger.LogInformation("Hardware configuration updated successfully. A reboot might be required.");
+            }
+            else
+            {
+                logger.LogInformation("Hardware configuration is already up to date.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to update hardware configuration in {Path}", ConfigPath);
+            throw;
+        }
+    }
+
+    public string Name { get; } = "Boot Config";
+}
