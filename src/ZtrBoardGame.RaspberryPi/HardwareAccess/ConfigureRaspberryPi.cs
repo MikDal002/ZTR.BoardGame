@@ -8,6 +8,7 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 public interface ISystemConfigurer
 {
+    bool CanConfigure();
     bool IsConfigurationNeeded();
     void Configure();
 }
@@ -17,6 +18,11 @@ class ConfigureRaspberryPi(ILogger<ConfigureRaspberryPi> logger) : ISystemConfig
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";
     private const string RealAppPath = "/home/mikolaj/ZtrBoardGame.Console-linux-arm64-alpha.AppImage";
+
+    public bool CanConfigure()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    }
 
     public bool IsConfigurationNeeded()
     {

@@ -12,6 +12,7 @@ using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
+using ZtrBoardGame.RaspberryPi.HardwareAccess;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
 
@@ -52,6 +53,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<ILiveGameDashboard, LiveGameDashboard>();
 
         _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
+        _services.AddSingleton<ISystemConfigurer, ConfigurePc>();
     }
 
     void ConfigureLogging(bool enableConsoleLogging, IConfigurationRoot configuration)

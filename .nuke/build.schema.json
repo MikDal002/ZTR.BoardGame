@@ -46,6 +46,18 @@
     "Verbosity": {
       "type": "string",
       "description": "",
+      "x-enum-descriptions": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "x-enumDescriptions": [
+        null,
+        null,
+        null,
+        null
+      ],
       "enum": [
         "Verbose",
         "Normal",
