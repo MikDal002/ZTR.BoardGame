@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Spectre.Console.Testing;
@@ -37,7 +38,7 @@ public class HardwareCheckInterceptorTests
         mockConfigurer.Setup(x => x.CanConfigure()).Returns(true);
         mockConfigurer.Setup(x => x.IsConfigurationNeeded()).Returns(false);
 
-        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object });
+        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object }, NullLogger<HardwareCheckInterceptor>.Instance);
 
         // Act
         interceptor.Intercept(null!, null!);
@@ -53,7 +54,7 @@ public class HardwareCheckInterceptorTests
         var mockConfigurer = new Mock<ISystemConfigurer>();
         mockConfigurer.Setup(x => x.CanConfigure()).Returns(false);
 
-        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object });
+        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object }, NullLogger<HardwareCheckInterceptor>.Instance);
 
         // Act
         interceptor.Intercept(null!, null!);
@@ -74,7 +75,7 @@ public class HardwareCheckInterceptorTests
         _console.Input.PushKey(ConsoleKey.Y);
         _console.Input.PushKey(ConsoleKey.Enter);
 
-        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object });
+        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object }, NullLogger<HardwareCheckInterceptor>.Instance);
 
         // Act
         interceptor.Intercept(null!, null!);
@@ -95,7 +96,7 @@ public class HardwareCheckInterceptorTests
         _console.Input.PushKey(ConsoleKey.N);
         _console.Input.PushKey(ConsoleKey.Enter);
 
-        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object });
+        var interceptor = new HardwareCheckInterceptor(_console, _mockConfig.Object, new[] { mockConfigurer.Object }, NullLogger<HardwareCheckInterceptor>.Instance);
 
         // Act
         interceptor.Intercept(null!, null!);
