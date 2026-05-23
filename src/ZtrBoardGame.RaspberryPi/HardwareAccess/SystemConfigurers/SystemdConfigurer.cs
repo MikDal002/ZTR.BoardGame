@@ -59,15 +59,9 @@ class SystemdConfigurer(ILogger<SystemdConfigurer> logger) : ISystemConfigurer
             return false;
         }
 
-        try
-        {
-            var status = await RaspberryPiSystemInfo.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status", redirectStandardOutput: true);
-            return status.Trim() == "enabled";
-        }
-        catch
-        {
-            return false;
-        }
+        var status = await RaspberryPiSystemInfo.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status", redirectStandardOutput: true);
+        return status.Trim() == "enabled";
+
     }
 
     private async Task InstallSystemdServiceAsync()

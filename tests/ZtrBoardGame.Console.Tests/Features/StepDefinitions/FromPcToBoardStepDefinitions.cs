@@ -52,9 +52,7 @@ public class FromPcToBoardStepDefinitions
     public void AfterScenario()
     {
         _pcServerFactory.Dispose();
-        _boardServerFactory.Dispose();
         _cancellationTokenSource.Cancel();
-
     }
 
     #region Shared Steps
