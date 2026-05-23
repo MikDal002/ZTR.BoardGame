@@ -56,10 +56,10 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
 
     public void Configure()
     {
-        logger.LogInformation("Updating Raspberry Pi hardware configuration in {Path}...", ConfigPath);
-
         try
         {
+            logger.LogInformation("Updating Raspberry Pi hardware configuration in {Path}...", ConfigPath);
+
             var lines = File.ReadAllLines(ConfigPath).ToList();
             var modified = false;
 
@@ -78,7 +78,8 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
                         continue;
                     }
 
-                    logger.LogInformation("Updating existing setting: {Old} -> {New}", lines[existingLineIndex], expectedLine);
+                    logger.LogInformation("Updating existing setting: {Old} -> {New}", lines[existingLineIndex],
+                        expectedLine);
                     lines[existingLineIndex] = expectedLine;
                     modified = true;
                 }
@@ -102,8 +103,7 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to update hardware configuration in {Path}", ConfigPath);
-            throw;
+            throw new SystemConfigurationException($"Failed to update hardware configuration in {ConfigPath}", ex);
         }
     }
 

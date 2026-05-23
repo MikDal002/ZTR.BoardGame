@@ -4,18 +4,18 @@
 #>
 
 function Install-Just {
-    Write-Host "--- Checking for 'just' ---" -ForegroundColor Cyan
+    Write-Output "--- Checking for 'just' ---" -ForegroundColor Cyan
     if (Get-Command just -ErrorAction SilentlyContinue) {
-        Write-Host "'just' is already installed." -ForegroundColor Green
+        Write-Output "'just' is already installed." -ForegroundColor Green
         return
     }
 
     if ($IsWindows) {
-        Write-Host "Installing 'just' using winget..." -ForegroundColor Yellow
+        Write-Output "Installing 'just' using winget..." -ForegroundColor Yellow
         winget install -e --id Casey.Just
     }
     elseif ($IsLinux) {
-        Write-Host "Attempting to install 'just' on Linux..." -ForegroundColor Yellow
+        Write-Output "Attempting to install 'just' on Linux..." -ForegroundColor Yellow
         if (Get-Command apt-get -ErrorAction SilentlyContinue) {
             sudo apt-get update
             sudo apt-get install -y just
@@ -24,14 +24,14 @@ function Install-Just {
             cargo install just
         }
         else {
-            Write-Host "Error: No supported package manager found (apt/cargo)." -ForegroundColor Red
+            Write-Output "Error: No supported package manager found (apt/cargo)." -ForegroundColor Red
         }
     }
 }
 
 # --- Main Setup Execution ---
 
-Write-Host "Starting environment setup..." -ForegroundColor Magenta
+Write-Output "Starting environment setup..." -ForegroundColor Magenta
 
 Install-Just
 
@@ -39,4 +39,4 @@ Install-Just
 # Install-Uhubctl
 # Install-Dotnet
 
-Write-Host "Setup finished!" -ForegroundColor Magenta
+Write-Output "Setup finished!" -ForegroundColor Magenta

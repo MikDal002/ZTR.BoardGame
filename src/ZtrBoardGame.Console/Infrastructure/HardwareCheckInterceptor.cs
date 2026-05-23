@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -9,7 +10,7 @@ using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Infrastructure;
 
-public class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurationSettings> config, IEnumerable<ISystemConfigurer> systemConfigurers) : ICommandInterceptor
+public class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurationSettings> config, IEnumerable<ISystemConfigurer> systemConfigurers, ILogger<HardwareCheckInterceptor> logger) : ICommandInterceptor
 {
     public void Intercept(CommandContext context, CommandSettings settings)
     {
@@ -58,6 +59,7 @@ public class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareCon
                 }
                 catch (Exception e)
                 {
+                    logger.LogError(e, "An error occurred while configuring {ConfigurerName}.", configurer.Name);
                     console.WriteException(e);
                 }
             }
