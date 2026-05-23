@@ -29,7 +29,7 @@ internal static class RaspberryPiSystemInfo
         return false;
     }
 
-    public static string RunCommand(string command, string arguments, string errorMessage,
+    public static async Task<string> RunCommandAsync(string command, string arguments, string errorMessage,
         bool redirectStandardOutput = false, bool redirectStandardError = false)
     {
         var processStartInfo = new ProcessStartInfo()
@@ -53,10 +53,10 @@ internal static class RaspberryPiSystemInfo
 
         if (redirectStandardOutput)
         {
-            output = process.StandardOutput.ReadToEnd();
+            output = await process.StandardOutput.ReadToEndAsync();
         }
 
-        process.WaitForExit();
+        await process.WaitForExitAsync();
 
         if (process.ExitCode != 0)
         {

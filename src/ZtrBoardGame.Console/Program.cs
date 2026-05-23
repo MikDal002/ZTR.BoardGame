@@ -17,10 +17,10 @@ public static class Program
         VelopackApp.Build()
             .Run();
 
-        var (processedArgs, enableConsoleLogging, hardwareConfigurationSettings) = args.ProcessGlobalOptions();
+        var (processedArgs, enableConsoleLogging) = args.ProcessGlobalOptions();
         processedArgs = ApplyDefaultWindowsArguments(processedArgs);
 
-        var typeRegistrar = new TypeRegistrar(enableConsoleLogging, hardwareConfigurationSettings);
+        var typeRegistrar = new TypeRegistrar(enableConsoleLogging);
         var app = new CommandApp(typeRegistrar);
 
         app.Configure(config =>
@@ -44,6 +44,8 @@ public static class Program
             });
             config.AddCommand<UpdateCommand>("version")
                 .WithExample("version", "--update");
+
+            config.AddCommand<SetupCommand>("setup");
 
             config.SetExceptionHandler((ex, _) =>
             {

@@ -9,23 +9,23 @@ class I2CConfigurer(ILogger<I2CConfigurer> logger) : ISystemConfigurer
     public bool CanConfigure()
         => RaspberryPiSystemInfo.IsRaspberryPi();
 
-    public bool IsConfigurationNeeded()
+    public async Task<bool> IsConfigurationNeededAsync()
     {
-        var i2cEnabled = IsI2CEnabled();
+        var i2cEnabled = await IsI2CEnabledAsync();
         logger.LogInformation("System check -> I2C Enabled: {I2C}", i2cEnabled);
         return i2cEnabled;
     }
 
-    public void Configure()
-        => EnableI2C();
+    public async Task ConfigureAsync()
+        => await EnableI2CAsync();
 
     public string Name { get; } = "I2C";
 
-    private static bool IsI2CEnabled()
+    private static async Task<bool> IsI2CEnabledAsync()
     {
         try
         {
-            var output = RaspberryPiSystemInfo.RunCommand("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
+            var output = await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
                 redirectStandardOutput: true);
             return output == "0";
         }
@@ -35,9 +35,9 @@ class I2CConfigurer(ILogger<I2CConfigurer> logger) : ISystemConfigurer
         }
     }
 
-    private void EnableI2C()
+    private async Task EnableI2CAsync()
     {
         logger.LogInformation("Enabling I2C");
-        RaspberryPiSystemInfo.RunCommand("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
+        await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
     }
 }

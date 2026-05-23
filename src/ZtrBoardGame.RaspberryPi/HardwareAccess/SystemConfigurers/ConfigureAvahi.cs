@@ -7,30 +7,30 @@ class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
     public bool CanConfigure()
         => RaspberryPiSystemInfo.IsRaspberryPi();
 
-    public bool IsConfigurationNeeded()
+    public async Task<bool> IsConfigurationNeededAsync()
     {
-        var isAvahiInstalled = IsAvahiInstalled();
+        var isAvahiInstalled = await IsAvahiInstalledAsync();
         logger.LogInformation(
             "System check -> Avahi Installed: {Avahi}", isAvahiInstalled);
         return isAvahiInstalled;
     }
 
-    public void Configure()
-        => InstallAvahi();
+    public async Task ConfigureAsync()
+        => await InstallAvahiAsync();
 
     public string Name { get; } = "Avahi";
 
-    private void InstallAvahi()
+    private async Task InstallAvahiAsync()
     {
         logger.LogInformation("Installing avahi-daemon...");
-        RaspberryPiSystemInfo.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+        await RaspberryPiSystemInfo.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
     }
 
-    private static bool IsAvahiInstalled()
+    private static async Task<bool> IsAvahiInstalledAsync()
     {
         try
         {
-            RaspberryPiSystemInfo.RunCommand("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true, redirectStandardError: true);
+            await RaspberryPiSystemInfo.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true, redirectStandardError: true);
             return true;
         }
         catch

@@ -22,7 +22,7 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
     public bool CanConfigure()
         => RaspberryPiSystemInfo.IsRaspberryPi();
 
-    public bool IsConfigurationNeeded()
+    public async Task<bool> IsConfigurationNeededAsync()
     {
         if (!File.Exists(ConfigPath))
         {
@@ -32,7 +32,7 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
 
         try
         {
-            var lines = File.ReadAllLines(ConfigPath);
+            var lines = await File.ReadAllLinesAsync(ConfigPath);
             foreach (var setting in _configBlocks)
             {
                 var expectedLine = $"{setting.Key}={setting.Value}";
@@ -54,13 +54,13 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
         return false;
     }
 
-    public void Configure()
+    public async Task ConfigureAsync()
     {
         try
         {
             logger.LogInformation("Updating Raspberry Pi hardware configuration in {Path}...", ConfigPath);
 
-            var lines = File.ReadAllLines(ConfigPath).ToList();
+            var lines = (await File.ReadAllLinesAsync(ConfigPath)).ToList();
             var modified = false;
 
             foreach (var block in _configBlocks)
@@ -93,7 +93,7 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
 
             if (modified)
             {
-                File.WriteAllLines(ConfigPath, lines);
+                await File.WriteAllLinesAsync(ConfigPath, lines);
                 logger.LogInformation("Hardware configuration updated successfully. A reboot might be required.");
             }
             else

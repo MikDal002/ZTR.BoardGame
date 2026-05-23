@@ -20,6 +20,7 @@
     <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.52.0" />
+    <PackageReference Include="System.Linq.Async" Version="7.0.1" />
     <PackageReference Include="Velopack" Version="0.0.1298" />
   </ItemGroup>
 

@@ -10,6 +10,7 @@ using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Commands.PC.UI;
+using ZtrBoardGame.Console.Commands.Setup;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
@@ -22,12 +23,11 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public IReadOnlyCollection<ServiceDescriptor> GetCopyOfServices() => _services.ToImmutableList();
 
-    public TypeRegistrar(bool enableConsoleLogging, HardwareConfigurationSettings hardwareConfigurationSettings,
-        IServiceCollection? serviceCollection = null)
+    public TypeRegistrar(bool enableConsoleLogging, IServiceCollection? serviceCollection = null)
     {
         _services = serviceCollection ?? new ServiceCollection();
 
-        var configuration = CreateConfiguration(hardwareConfigurationSettings);
+        var configuration = CreateConfiguration();
 
         ConfigureLogging(enableConsoleLogging, configuration);
         AddCommonServices(configuration);
@@ -42,7 +42,6 @@ public sealed class TypeRegistrar : ITypeRegistrar
     {
         _services.Configure<UpdateOptions>(configuration.GetSection(nameof(UpdateOptions)));
         _services.Configure<BoardNetworkSettings>(configuration.GetSection(nameof(BoardNetworkSettings)));
-        _services.Configure<HardwareConfigurationSettings>(configuration.GetSection(nameof(HardwareConfigurationSettings)));
         _services.AddSingleton<IBoardStorage, BoardStorage>();
         _services.AddSingleton<IUpdateService, UpdateService>();
         _services.AddSingleton(AnsiConsole.Console);
@@ -53,6 +52,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<ILiveGameDashboard, LiveGameDashboard>();
 
         _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
+        _services.AddSingleton<ISystemConfiguratorOrchestrator, SystemConfiguratorOrchestrator>();
         _services.AddSingleton<ISystemConfigurer, ConfigurePc>();
     }
 
@@ -62,13 +62,12 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<ICommandInterceptor, LogInterceptor>();
     }
 
-    IConfigurationRoot CreateConfiguration(HardwareConfigurationSettings hardwareConfigurationSettings)
+    IConfigurationRoot CreateConfiguration()
     {
         // --- Configuration Setup ---
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddFromObject(nameof(HardwareConfigurationSettings), hardwareConfigurationSettings)
             // IF file doesn't exists run _build project first.
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)

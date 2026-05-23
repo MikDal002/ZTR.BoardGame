@@ -3,7 +3,7 @@
 public interface ISystemConfigurer
 {
     bool CanConfigure();
-    bool IsConfigurationNeeded();
-    void Configure();
+    Task<bool> IsConfigurationNeededAsync();
+    Task ConfigureAsync();
     string Name { get; }
 }

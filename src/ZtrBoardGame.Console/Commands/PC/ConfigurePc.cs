@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Commands.PC;
@@ -16,20 +17,13 @@ public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     }
 
-    public bool IsConfigurationNeeded()
+    public Task<bool> IsConfigurationNeededAsync()
     {
-        return !Environment.MachineName.Equals("pcmr", StringComparison.OrdinalIgnoreCase);
+        return Task.FromResult(!Environment.MachineName.Equals("pcmr", StringComparison.OrdinalIgnoreCase));
     }
 
-    public void Configure()
+    public async Task ConfigureAsync()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            console.MarkupLine("[yellow]Automatyczna zmiana nazwy (autofix) nie jest wspierana na tym systemie operacyjnym.[/]");
-            console.MarkupLine("Zmień nazwę komputera na [green]pcmr[/] używając komendy np.: [cyan]sudo hostnamectl set-hostname pcmr[/] i uruchom aplikację ponownie.");
-            Environment.Exit(0);
-        }
-
         try
         {
             var processStartInfo = new ProcessStartInfo()
@@ -46,7 +40,7 @@ public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
                 throw new InvalidOperationException("Nie udało się uruchomić procesu PowerShell.");
             }
 
-            process.WaitForExit();
+            await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
             {

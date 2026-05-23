@@ -33,14 +33,14 @@ public class FromPcToBoardStepDefinitions : IDisposable
     {
         _cancellationTokenSource = new();
 
-        _pcServerFactory = new("pc run --auto-config");
+        _pcServerFactory = new("pc run");
         _pcServerFactory.ConfigureTestServices(services =>
         {
             services.AddSingleton(_boardStorage);
             services.AddSingleton<IAnsiConsole>(_pcConsole);
         });
 
-        _boardServerFactory = new("board run --auto-config");
+        _boardServerFactory = new("board run");
         _boardServerFactory.ConfigureTestServices(services =>
         {
             services.AddSingleton<IAnsiConsole>(_boardConsole);
