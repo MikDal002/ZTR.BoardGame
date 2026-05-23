@@ -29,8 +29,8 @@ namespace ZtrBoardGame.E2E.Tests
         private static string[] featureTags = new string[] {
                 "MyCategory"};
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "", "Two Boards one PC", "\tAs a user\r\n\tI want to run a PC server and two boards in Docker\r\n\tTo ensure they " +
-                "can all connect to each other", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "", "Two Boards one PC", "\tAs a user\n\tI want to run a PC server and two boards in Docker\n\tTo ensure they ca" +
+                "n all connect to each other", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
         
 #line 1 "TwoBoardsOnePc.feature"
 #line hidden
