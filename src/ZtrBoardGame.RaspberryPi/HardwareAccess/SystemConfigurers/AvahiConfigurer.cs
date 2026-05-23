@@ -2,7 +2,7 @@
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
+class AvahiConfigurer(ILogger<AvahiConfigurer> logger) : ISystemConfigurer
 {
     public bool CanConfigure()
         => RaspberryPiSystemInfo.IsRaspberryPi();
@@ -12,7 +12,7 @@ class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
         var isAvahiInstalled = await IsAvahiInstalledAsync();
         logger.LogInformation(
             "System check -> Avahi Installed: {Avahi}", isAvahiInstalled);
-        return isAvahiInstalled;
+        return !isAvahiInstalled;
     }
 
     public async Task ConfigureAsync()

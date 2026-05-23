@@ -13,7 +13,7 @@ class I2CConfigurer(ILogger<I2CConfigurer> logger) : ISystemConfigurer
     {
         var i2cEnabled = await IsI2CEnabledAsync();
         logger.LogInformation("System check -> I2C Enabled: {I2C}", i2cEnabled);
-        return i2cEnabled;
+        return !i2cEnabled;
     }
 
     public async Task ConfigureAsync()

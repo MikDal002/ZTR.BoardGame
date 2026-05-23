@@ -38,8 +38,8 @@ public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator 
         {
             try
             {
-                await console.Status()
-                    .StartAsync($"Configuring {configurer.Name}...", ctx => configurer.ConfigureAsync());
+                console.MarkupLine($"Configuring {configurer.Name}...");
+                await configurer.ConfigureAsync();
 
                 console.MarkupLine($"[green]{configurer.Name} configured successfully.[/]");
             }

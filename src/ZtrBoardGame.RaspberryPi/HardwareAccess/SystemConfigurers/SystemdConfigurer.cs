@@ -2,7 +2,7 @@
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
+class SystemdConfigurer(ILogger<SystemdConfigurer> logger) : ISystemConfigurer
 {
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";

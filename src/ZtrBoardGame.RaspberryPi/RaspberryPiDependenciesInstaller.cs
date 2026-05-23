@@ -20,8 +20,8 @@ public static class RaspberryPiDependenciesInstaller
 
     public static IServiceCollection AddRaspberryPiHardwareConfigurers(this IServiceCollection services)
     {
-        services.AddSingleton<ISystemConfigurer, ConfigureSystemd>();
-        services.AddSingleton<ISystemConfigurer, ConfigureAvahi>();
+        services.AddSingleton<ISystemConfigurer, SystemdConfigurer>();
+        services.AddSingleton<ISystemConfigurer, AvahiConfigurer>();
         services.AddSingleton<ISystemConfigurer, I2CConfigurer>();
         services.AddSingleton<ISystemConfigurer, BootConfigSystemConfigurer>();
         services.AddSingleton<ISystemConfigurer, UsbPowerSystemConfigurer>();
