@@ -1,6 +1,7 @@
 using Spectre.Console;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
@@ -33,7 +34,7 @@ public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
         {
             var processStartInfo = new ProcessStartInfo()
             {
-                FileName = "powershell.exe",
+                FileName = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe"),
                 Arguments = "-NoProfile -Command \"Rename-Computer -NewName 'pcmr' -Force\"",
                 UseShellExecute = true,
                 Verb = "runas"
