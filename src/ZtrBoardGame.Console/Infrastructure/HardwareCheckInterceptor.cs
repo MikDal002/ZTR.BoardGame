@@ -48,7 +48,7 @@ public class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareCon
             {
                 try
                 {
-                    AnsiConsole.Status()
+                    console.Status()
                         .Start($"Configuring {configurer.Name}...", ctx =>
                         {
                             configurer.Configure();
