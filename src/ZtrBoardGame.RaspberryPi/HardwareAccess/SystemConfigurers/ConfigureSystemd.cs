@@ -99,12 +99,11 @@ WantedBy=multi-user.target
 ";
 
         File.WriteAllText(ServicePath, serviceContent);
-        logger.LogInformation("Service file created: {Path} {Args}", RealAppPath, appArguments);
 
         RaspberryPiSystemInfo.RunCommand("systemctl", "daemon-reload", "Cannot reload systemd daemon");
         RaspberryPiSystemInfo.RunCommand("systemctl", $"enable {ServiceName}", "Cannot enable service");
 
-        logger.LogInformation("Autostart configured successfully.");
+        logger.LogInformation("Autostart configured successfully for executable file: `{Path} {Args}`", RealAppPath, appArguments);
 
     }
 }

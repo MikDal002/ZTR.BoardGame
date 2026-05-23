@@ -2,7 +2,9 @@
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
+#pragma warning disable S101 // This name is appropriate for physical interface I2C.
 class I2CConfigurer(ILogger<I2CConfigurer> logger) : ISystemConfigurer
+#pragma warning restore S101
 {
     public bool CanConfigure()
         => RaspberryPiSystemInfo.IsRaspberryPi();

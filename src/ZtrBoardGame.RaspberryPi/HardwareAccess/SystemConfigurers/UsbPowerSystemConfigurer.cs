@@ -103,7 +103,7 @@ class UsbPowerSystemConfigurer(ILogger<UsbPowerSystemConfigurer> logger) : ISyst
                 : $"{currentCrontab}\n{CronEntry}";
 
             // Using temporary file to avoid complex piping in RunCommand
-            var tempFile = Path.GetTempFileName();
+            var tempFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             File.WriteAllText(tempFile, newCrontab + "\n");
 
             try
@@ -119,8 +119,7 @@ class UsbPowerSystemConfigurer(ILogger<UsbPowerSystemConfigurer> logger) : ISyst
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to update crontab.");
-            throw;
+            throw new SystemConfigurationException("Failed to update crontab.", ex);
         }
     }
 }
