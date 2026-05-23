@@ -16,7 +16,7 @@ using ZtrBoardGame.RaspberryPi.HardwareAccess;
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
 [Binding, Scope(Feature = "From Pc To Board Connection")]
-public class FromPcToBoardStepDefinitions
+public class FromPcToBoardStepDefinitions : IDisposable
 {
     private CustomWebApplicationFactory<PcRunCommand> _pcServerFactory;
     private CustomWebApplicationFactory<BoardRunCommand> _boardServerFactory;
@@ -52,6 +52,7 @@ public class FromPcToBoardStepDefinitions
     public void AfterScenario()
     {
         _pcServerFactory.Dispose();
+        _boardServerFactory.Dispose();
         _cancellationTokenSource.Cancel();
 
     }
@@ -181,6 +182,7 @@ public class FromPcToBoardStepDefinitions
     public void Dispose()
     {
         Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -190,6 +192,8 @@ public class FromPcToBoardStepDefinitions
             return;
         }
 
+        _pcServerFactory?.Dispose();
+        _boardServerFactory?.Dispose();
         _cancellationTokenSource?.Dispose();
     }
 }

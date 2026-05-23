@@ -41,6 +41,6 @@ public static class LoggerSetup
         }
 
         Log.Logger = loggerConfiguration.CreateLogger();
-        services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+        services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: false));
     }
 }
