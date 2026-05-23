@@ -6,10 +6,18 @@ class SystemdConfigurer(ILogger<SystemdConfigurer> logger) : ISystemConfigurer
 {
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";
+
+    /// <summary>
+    /// Unfortunately Environment.ProcessPath and AppContext.BaseDirectory returns path to the /tmp/.mound.../
+    /// directory, which is changed on every run and is not the real path to the executable file. This is because of the
+    /// way AppImage works.
+    /// </summary>
     private const string RealAppPath = "/home/mikolaj/ZtrBoardGame.Console-linux-arm64-alpha.AppImage";
 
     public bool CanConfigure()
-        => RaspberryPiSystemInfo.IsRaspberryPi();
+    {
+        return RaspberryPiSystemInfo.IsRaspberryPi();
+    }
 
     public async Task<bool> IsConfigurationNeededAsync()
     {

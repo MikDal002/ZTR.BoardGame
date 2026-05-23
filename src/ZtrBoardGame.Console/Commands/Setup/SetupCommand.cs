@@ -4,6 +4,7 @@ using Spectre.Console.Cli;
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
@@ -32,9 +33,15 @@ public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator 
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken)
     {
-        var systemWhichNeedsConfiguration = configuratorOrchestrator.GetSystemWhichNeedsConfiguration();
+        var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemWhichNeedsConfiguration().ToListAsync();
 
-        await foreach (var configurer in systemWhichNeedsConfiguration)
+        if (systemWhichNeedsConfiguration.Count == 0)
+        {
+            console.MarkupLine("[green]Everything is already configured.[/]");
+            return 0;
+        }
+
+        foreach (var configurer in systemWhichNeedsConfiguration)
         {
             try
             {
