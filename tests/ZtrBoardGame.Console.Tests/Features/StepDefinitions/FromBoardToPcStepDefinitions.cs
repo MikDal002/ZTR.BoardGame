@@ -24,7 +24,6 @@ public class FromBoardToPcStepDefinitions : IDisposable
     private IHelloService _helloService;
     private TestConsole _console;
     ServiceProvider _serviceProvider;
-    private Task? _announcementTask;
 
     #region Hooks
     [BeforeScenario]
@@ -44,20 +43,9 @@ public class FromBoardToPcStepDefinitions : IDisposable
     }
 
     [AfterScenario]
-    public async Task AfterScenario()
+    public void AfterScenario()
     {
         _cancellationTokenSource.Cancel();
-        if (_announcementTask != null)
-        {
-            try
-            {
-                await _announcementTask;
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected
-            }
-        }
     }
     #endregion
 
@@ -99,10 +87,10 @@ public class FromBoardToPcStepDefinitions : IDisposable
     public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
         _helloService = _serviceProvider.GetRequiredService<IHelloService>();
-        _announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
+        var announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
 
-        _announcementTask.Wait(TimeSpan.FromSeconds(1));
-        _announcementTask.IsFaulted.Should().BeFalse();
+        announcementTask.Wait(TimeSpan.FromSeconds(1));
+        announcementTask.IsFaulted.Should().BeFalse();
     }
 
     [Then(@"the board should begin its announcement cycle to ""(.*)""")]
