@@ -2,6 +2,7 @@ name: Unit tests for application
 
 on:
   pull_request:
+    branches: [ main, master, develop ]
     paths-ignore:
       - 'docs/**'
       - '**.md'
