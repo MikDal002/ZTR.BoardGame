@@ -22,6 +22,8 @@ on:
       - develop
       - main
       - master
+      - 'feature/*'
+      - release
 
 jobs:
   windows-latest:
@@ -38,8 +40,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests'
-        run: ./build.cmd Tests
+      - name: 'Run: UnitTests'
+        run: ./build.cmd UnitTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ubuntu-latest:
@@ -56,7 +58,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests'
-        run: ./build.cmd Tests
+      - name: 'Run: UnitTests'
+        run: ./build.cmd UnitTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
