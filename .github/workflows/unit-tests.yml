@@ -1,0 +1,155 @@
+name: Unit tests for application
+
+on:
+  pull_request:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Run unit tests (${{ matrix.os }})
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ZtrBoardGame.sln
+
+      - name: Build
+        run: dotnet build ZtrBoardGame.sln --no-restore --configuration Release
+
+      - name: Test
+        run: >-
+          dotnet test ZtrBoardGame.sln
+          --configuration Release
+          --no-build
+          --logger "console;verbosity=normal"
+          --logger "trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
+          -p:TreatWarningsAsErrors=true
+          -warnaserror
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: coverage/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Test Report
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2
+        if: always()
+        with:
+          name: Unit tests (${{ matrix.os }})
+          path: 'coverage/**/*.trx'
+          reporter: dotnet-trx
+          fail-on-error: false
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Merge coverage and check threshold
+    env:
+      COVERAGE_THRESHOLD: 10
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-all/
+          merge-multiple: false
+
+      - name: Generate merged coverage report
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.4.9
+          reportgenerator -reports:"coverage-all/**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:"Cobertura;MarkdownSummaryGithub"
+
+      - name: Add coverage gate summary to SummaryGithub
+        id: coverage_gate
+        shell: pwsh
+        run: |
+            $threshold = [double]"${{ env.COVERAGE_THRESHOLD }}"
+            [xml]$coverage = Get-Content 'coverage-report/Cobertura.xml'
+            $lineRate = [double]$coverage.coverage.'line-rate' * 100
+            $lineRateRounded = [math]::Round($lineRate, 2)
+            $passed = $lineRate -ge $threshold
+
+            $statusText = if ($passed) { 'PASSED' } else { 'FAILED' }
+            $gateTitle = if ($passed) { 'COVERAGE GATE PASSED' } else { 'COVERAGE GATE FAILED' }
+            $statusIcon = if ($passed) { ':white_check_mark:' } else { ':x:' }
+
+            $summaryPath = 'coverage-report/SummaryGithub.md'
+            $existingSummary = Get-Content -Raw $summaryPath
+            $gateSummary = @"
+            > ### $gateTitle
+            >
+            > [Coverage Gate: $statusText] [Line: $lineRateRounded%] [Threshold: $threshold%]
+            >
+            > $statusIcon **Status:** **$statusText**
+            > **Threshold:** $threshold%  
+            > **Line coverage:** $lineRateRounded%  
+            >
+            > ---
+            "@
+
+            Set-Content -Path $summaryPath -Value ($gateSummary + [Environment]::NewLine + $existingSummary)
+
+            "line_coverage=$lineRateRounded" >> $env:GITHUB_OUTPUT
+            "status=$statusText" >> $env:GITHUB_OUTPUT
+            "passed=$($passed.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0
+        if: ${{ github.event_name == 'pull_request' && success() }}
+        with:
+          header: dotnetcode-coverage
+          recreate: true
+          path: "coverage-report/SummaryGithub.md"
+
+      - name: Add Coverage Report to Job Summary
+        run: |
+          if [ -f "coverage-report/SummaryGithub.md" ]; then
+            echo "## Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+            cat coverage-report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## No Coverage Report Generated" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage report file not found at coverage-report/SummaryGithub.md" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check coverage threshold (${{ env.COVERAGE_THRESHOLD }}%)
+        if: ${{ fromJSON(env.COVERAGE_THRESHOLD) > 0 && !cancelled() }}
+        shell: pwsh
+        run: |
+          if ("${{ steps.coverage_gate.outputs.passed }}" -ne "true") {
+            Write-Error "Code coverage (${{ steps.coverage_gate.outputs.line_coverage }}%) is below threshold (${{ env.COVERAGE_THRESHOLD }}%)."
+            exit 1
+          }
+
+          Write-Host "Coverage threshold passed: ${{ steps.coverage_gate.outputs.line_coverage }}% >= ${{ env.COVERAGE_THRESHOLD }}%."
