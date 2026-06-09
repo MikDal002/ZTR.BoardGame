@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Options;
+﻿using FakeItEasy;
+using Microsoft.Extensions.Options;
 using Spectre.Console.Cli;
 using Spectre.Console.Testing;
 using ZtrBoardGame.Configuration.Shared;
+using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
@@ -18,30 +20,15 @@ public class HardwareCheckInterceptorTest
         ReturnFalse
     }
 
-    class ThrowingConfigurer(Behavior forCanConfigure = Behavior.Throw, Behavior forIsConfigurationNeeded = Behavior.Throw) : ISystemConfigurer
+    internal class ThrowingConfigurer() : ISystemConfigurer
     {
+        public virtual bool IsConfigurationNeeded()
+            => throw new NotImplementedException();
 
-        public bool IsConfigurationNeeded()
-            => forIsConfigurationNeeded switch
-            {
-                Behavior.Throw => throw new NotImplementedException(),
-                Behavior.ReturnTrue => true,
-                Behavior.ReturnFalse => false,
-                _ => throw new ArgumentOutOfRangeException(nameof(forIsConfigurationNeeded), forIsConfigurationNeeded,
-                    null)
-            };
+        public virtual bool CanConfigure()
+            => throw new NotImplementedException();
 
-        public bool CanConfigure()
-            => forCanConfigure switch
-            {
-                Behavior.Throw => throw new NotImplementedException(),
-                Behavior.ReturnTrue => true,
-                Behavior.ReturnFalse => false,
-                _ => throw new ArgumentOutOfRangeException(nameof(forCanConfigure), forCanConfigure,
-                    null)
-            };
-
-        public void Configure()
+        public virtual void Configure()
             => throw new NotImplementedException();
 
         public string Name { get; }
@@ -51,43 +38,106 @@ public class HardwareCheckInterceptorTest
     {
     }
 
-    HardwareCheckInterceptor _hardwareCheckInterceptor = new(
-        new TestConsole(),
-        Options.Create(new HardwareConfigurationSettings()),
-        []
-    );
-
     [Test]
     public void HardwareCheckInterceptor_DoesNot_ThrowOnEmptyList()
     {
         // Arrange
-        var cut = new HardwareCheckInterceptor(
-            new TestConsole(),
-            Options.Create(new HardwareConfigurationSettings()),
-            []
-        );
+        var (cut, testConsole, _) = Get(canConfigure: true, isConfigurationNeeded: true);
 
         // Act
         var action = () => cut.Intercept(null, null);
 
         // Assert
         action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
     }
 
     [Test]
     public void HardwareCheckInterceptor_ProcessOnly_ForBoardRunSettings()
+    // Arrange
     {
-        // Arrange
-        var cut = new HardwareCheckInterceptor(
-            new TestConsole(),
-            Options.Create(new HardwareConfigurationSettings()),
-            [new ThrowingConfigurer()]
-        );
+        var (cut, testConsole, _) = Get(canConfigure: true, isConfigurationNeeded: true);
 
         // Act
         var action = () => cut.Intercept(null, new AnyOtherSettings());
 
         // Assert
         action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
+    }
+
+    [Test]
+    public void HardwareCheckInterceptor_DoNotProcess_WhenCannotConfigure()
+    {
+        // Arrange
+        var (cut, testConsole, throwingConfigurer) = Get(canConfigure: false);
+
+        // Act
+        var action = () => cut.Intercept(null, new BoardRunSettings());
+
+        // Assert
+        action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
+        A.CallTo(() => throwingConfigurer.CanConfigure()).MustHaveHappened();
+    }
+
+    [Test]
+    public void HardwareCheckInterceptor_DoNotProcess_WhenConfigurationIsntNeeded()
+    {
+        var (cut, testConsole, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: false);
+
+        // Act
+        var action = () => cut.Intercept(null, new BoardRunSettings());
+
+        // Assert
+        action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
+        A.CallTo(() => throwingConfigurer.CanConfigure()).MustHaveHappened();
+        A.CallTo(() => throwingConfigurer.IsConfigurationNeeded()).MustHaveHappened();
+    }
+
+    [Test]
+    public void FakeHardwareCheckInterceptor_ShouldThrow_WhenUserAccepts()
+    {
+        // Arrange
+        var (cut, testConsole, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: true);
+
+        // Act
+        testConsole.Input.PushKey(ConsoleKey.Enter);
+        var action = () => cut.Intercept(null, new BoardRunSettings());
+
+        // Assert
+        action.Should().NotThrow();
+        testConsole.Output.Should().Contain("Exception");
+        A.CallTo(() => throwingConfigurer.CanConfigure()).MustHaveHappened();
+        A.CallTo(() => throwingConfigurer.IsConfigurationNeeded()).MustHaveHappened();
+    }
+
+    private static (HardwareCheckInterceptor cut, TestConsole testConsole, ISystemConfigurer throwingConfigurer) Get(bool? canConfigure = null, bool? isConfigurationNeeded = null)
+    {
+        var throwingConfigurer = A.Fake<ISystemConfigurer>(x => x.Wrapping(new ThrowingConfigurer()));
+
+        if (canConfigure is not null)
+        {
+            A.CallTo(() => throwingConfigurer.CanConfigure())
+                .Returns((bool)canConfigure);
+        }
+
+        if (isConfigurationNeeded is not null)
+        {
+            A.CallTo(() => throwingConfigurer.IsConfigurationNeeded())
+                .Returns((bool)isConfigurationNeeded);
+        }
+
+        var testConsole = new TestConsole();
+        testConsole.Profile.Capabilities.Interactive = true;
+
+        var cut = new HardwareCheckInterceptor(
+            testConsole,
+            Options.Create(new HardwareConfigurationSettings()),
+            [throwingConfigurer]
+        );
+
+        return (cut, testConsole, throwingConfigurer);
     }
 }

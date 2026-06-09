@@ -20,9 +20,10 @@ public static class RaspberryPiDependenciesInstaller
 
     public static IServiceCollection AddRaspberryPiHardwareConfigurer(this IServiceCollection services)
     {
-        services.AddScoped<ISystemConfigurer, ConfigureSystemd>();
-        services.AddScoped<ISystemConfigurer, ConfigureAvahi>();
-        services.AddScoped<ISystemConfigurer, ConfigureI2C>();
+        // Must be singleton because hardware interceptor requires it.
+        services.AddSingleton<ISystemConfigurer, ConfigureSystemd>();
+        services.AddSingleton<ISystemConfigurer, ConfigureAvahi>();
+        services.AddSingleton<ISystemConfigurer, ConfigureI2C>();
         return services;
     }
 }
