@@ -1,0 +1,25 @@
+{
+   "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+   "tasks": [
+      {
+         "name": "dotnet format staged",
+         "group": "pre-commit",
+         "command": "dotnet",
+         "args": [
+            "format",
+            "ZtrBoardGame.sln",
+            "--verbosity",
+            "detailed",
+            "--no-restore",
+            "--include",
+            "${staged}"
+         ],
+         "include": [
+            "**/*.cs",
+            "**/*.csproj",
+            "**/*.sln",
+            "**/*.targets"
+         ]
+      }
+   ]
+}
