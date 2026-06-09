@@ -3,7 +3,6 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
@@ -21,6 +20,11 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
 
         foreach (var systemConfigurer in systemConfigurers)
         {
+            var canConfigure = systemConfigurer.CanConfigure();
+            if (!canConfigure)
+            {
+                continue;
+            }
 
             var isConfigNeeded = false;
             try
@@ -49,12 +53,9 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
             {
                 try
                 {
-                    AnsiConsole.Status()
-                        .Start("Configuring RaspberryPi...", ctx =>
-                        {
-                            systemConfigurer.Configure();
-                            Thread.Sleep(500);
-                        });
+                    console.WriteLine($"Configuring {systemConfigurer.Name}...");
+
+                    systemConfigurer.Configure();
 
                     console.MarkupLine($"[green]{systemConfigurer.Name} configured successfully.[/]");
                 }

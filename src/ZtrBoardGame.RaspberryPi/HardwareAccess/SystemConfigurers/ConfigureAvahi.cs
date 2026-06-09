@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
-
-public class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
+public class ConfigureAvahi() : ISystemConfigurer
 {
-
     public bool IsConfigurationNeeded()
         => !IsAvahiInstalled();
 
@@ -29,9 +26,6 @@ public class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
         }
     }
 
-    private void InstallAvahi()
-    {
-        logger.LogInformation("Installing avahi-daemon...");
-        RaspberryPiCommandHelper.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
-    }
+    private static void InstallAvahi()
+        => RaspberryPiCommandHelper.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
 }
