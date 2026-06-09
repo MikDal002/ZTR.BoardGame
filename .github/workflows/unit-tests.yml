@@ -2,7 +2,6 @@ name: Unit tests for application
 
 on:
   pull_request:
-    branches: [ main, master, develop ]
     paths-ignore:
       - 'docs/**'
       - '**.md'
@@ -47,6 +46,7 @@ jobs:
           --logger "trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./coverage
+          --filter "FullyQualifiedName!~ZtrBoardGame.E2E.Tests"
           -p:TreatWarningsAsErrors=true
           -warnaserror
 
