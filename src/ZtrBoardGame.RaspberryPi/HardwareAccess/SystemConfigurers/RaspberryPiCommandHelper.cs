@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
@@ -6,8 +7,13 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 internal static class RaspberryPiCommandHelper
 {
     private static bool? _isRaspberryPi = false;
+    private static readonly Lock APT_SYNC_CONTEXT = new();
+    private static readonly Lock RASPBERRYPI_CHECK_SYNC_CONTEXT = new();
+
     public static bool IsRaspberryPiRoot()
     {
+        using var _ = RASPBERRYPI_CHECK_SYNC_CONTEXT.EnterScope();
+
         _isRaspberryPi ??= IsRaspberryPiRootPriv();
         return _isRaspberryPi.Value;
 
@@ -41,9 +47,12 @@ internal static class RaspberryPiCommandHelper
         }
     }
 
+    [ExcludeFromCodeCoverage(Justification = "This runs real code")]
     public static string RunCommand(string command, string arguments, string errorMessage,
         bool redirectStandardOutput = false, bool redirectStandardError = false)
     {
+        using var enterScope = APT_SYNC_CONTEXT.EnterScope();
+
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = command,
@@ -79,19 +88,19 @@ internal static class RaspberryPiCommandHelper
     }
 
     private static bool _wasUpdateRun = false;
-    private static object _syncContext = new();
+
+    [ExcludeFromCodeCoverage(Justification = "This runs real code")]
     public static void RunUpdate()
     {
-        lock (_syncContext)
-        {
-            if (_wasUpdateRun)
-            {
-                return;
-            }
+        using var enterScope = APT_SYNC_CONTEXT.EnterScope();
 
-            _wasUpdateRun = true;
+        if (_wasUpdateRun)
+        {
+            return;
         }
 
         RunCommand("apt-get", "update", "Cannot run apt-get update");
+
+        _wasUpdateRun = true;
     }
 }

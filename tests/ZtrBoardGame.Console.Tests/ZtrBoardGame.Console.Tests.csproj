@@ -42,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ZtrBoardGame.Console\ZtrBoardGame.Console.csproj" />
     <ProjectReference Include="..\..\src\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj" />
+    <ProjectReference Include="..\..\src\ZtrBoardGame.RaspberryPi\ZtrBoardGame.RaspberryPi.csproj" />
   </ItemGroup>
 
 </Project>

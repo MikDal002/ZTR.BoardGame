@@ -13,13 +13,6 @@ namespace ZtrBoardGame.Console.Tests.Infrastructure;
 [TestOf(typeof(HardwareCheckInterceptor))]
 public class HardwareCheckInterceptorTest
 {
-    enum Behavior
-    {
-        Throw,
-        ReturnTrue,
-        ReturnFalse
-    }
-
     internal class ThrowingConfigurer() : ISystemConfigurer
     {
         public virtual bool IsConfigurationNeeded()

@@ -20,28 +20,29 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
 
         foreach (var systemConfigurer in systemConfigurers)
         {
+            Configure(systemConfigurer);
+        }
+    }
+
+    void Configure(ISystemConfigurer systemConfigurer)
+    {
+        try
+        {
             var canConfigure = systemConfigurer.CanConfigure();
             if (!canConfigure)
             {
-                continue;
+                return;
             }
 
-            var isConfigNeeded = false;
-            try
-            {
-                isConfigNeeded = systemConfigurer.IsConfigurationNeeded();
-            }
-            catch (Exception e)
-            {
-                console.WriteException(e);
-            }
+            var isConfigNeeded = systemConfigurer.IsConfigurationNeeded();
 
             if (!isConfigNeeded)
             {
-                continue;
+                return;
             }
 
-            console.Write(new Rule($"[yellow]Hardware configuration for {systemConfigurer.Name} is required.[/]"));
+            console.Write(new Rule($"[yellow]Hardware configuration for" +
+                                   $" {systemConfigurer.Name} is required.[/]"));
 
             var confirm = true;
             if (!config.Value.DoAutoConfig)
@@ -49,25 +50,24 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
                 confirm = console.Confirm($"Do you want to configure the {systemConfigurer.Name} now?");
             }
 
-            if (confirm)
+            if (!confirm)
             {
-                try
-                {
-                    console.WriteLine($"Configuring {systemConfigurer.Name}...");
-
-                    systemConfigurer.Configure();
-
-                    console.MarkupLine($"[green]{systemConfigurer.Name} configured successfully.[/]");
-                }
-                catch (Exception e)
-                {
-                    console.WriteException(e);
-                }
+                console.MarkupLine(
+                    $"[red]{systemConfigurer.Name} configuration skipped. " +
+                    $"The application may not function correctly.[/]");
+                return;
             }
-            else
-            {
-                console.MarkupLine($"[red]{systemConfigurer.Name} configuration skipped. The application may not function correctly.[/]");
-            }
+
+            console.WriteLine($"Configuring {systemConfigurer.Name}...");
+
+            systemConfigurer.Configure();
+
+            console.MarkupLine($"[green]{systemConfigurer.Name} configured " +
+                               $"successfully.[/]");
+        }
+        catch (Exception e)
+        {
+            console.WriteException(e);
         }
     }
 }
