@@ -72,8 +72,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Merge coverage and check threshold
     env:
-      COVERAGE_THRESHOLD: 10
+      COVERAGE_THRESHOLD: 35
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -90,6 +94,14 @@ jobs:
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.4.9
           reportgenerator -reports:"coverage-all/**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:"Cobertura;MarkdownSummaryGithub"
+
+      - name: Diff Coverage
+        uses: Affanmir/diff-cover-action@0d8c98f613bbd2428df50b3109b1e3b1d5ab59d3
+        with:
+          coverage-files: coverage-report/Cobertura.xml
+          fail-under: '80'
+          create-badge: 'true'
+          compare-branch: origin/${{ github.base_ref }}
 
       - name: Add coverage gate summary to SummaryGithub
         id: coverage_gate
