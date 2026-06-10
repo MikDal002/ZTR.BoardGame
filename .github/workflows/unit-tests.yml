@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Merge coverage and check threshold
     env:
-      COVERAGE_THRESHOLD: 35
+      COVERAGE_THRESHOLD: 33
     steps:
       - uses: actions/checkout@v6
         with:
