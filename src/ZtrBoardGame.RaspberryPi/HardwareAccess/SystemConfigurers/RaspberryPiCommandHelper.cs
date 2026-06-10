@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
+[ExcludeFromCodeCoverage(Justification = "This runs real code")]
 internal static class RaspberryPiCommandHelper
 {
     private static bool? _isRaspberryPi = false;
@@ -47,7 +48,6 @@ internal static class RaspberryPiCommandHelper
         }
     }
 
-    [ExcludeFromCodeCoverage(Justification = "This runs real code")]
     public static string RunCommand(string command, string arguments, string errorMessage,
         bool redirectStandardOutput = false, bool redirectStandardError = false)
     {
@@ -89,7 +89,6 @@ internal static class RaspberryPiCommandHelper
 
     private static bool _wasUpdateRun = false;
 
-    [ExcludeFromCodeCoverage(Justification = "This runs real code")]
     public static void RunUpdate()
     {
         using var enterScope = APT_SYNC_CONTEXT.EnterScope();
