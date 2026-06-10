@@ -24,7 +24,7 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
         }
     }
 
-    void Configure(ISystemConfigurer systemConfigurer)
+    private void Configure(ISystemConfigurer systemConfigurer)
     {
         try
         {

@@ -5,6 +5,7 @@ using Spectre.Console.Testing;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.Console.Tests.TestHelpers;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Tests.Infrastructure;
@@ -13,23 +14,21 @@ namespace ZtrBoardGame.Console.Tests.Infrastructure;
 [TestOf(typeof(HardwareCheckInterceptor))]
 public class HardwareCheckInterceptorTest
 {
-    internal class ThrowingConfigurer() : ISystemConfigurer
+    sealed class ThrowingConfigurer() : ISystemConfigurer
     {
-        public virtual bool IsConfigurationNeeded()
+        public bool IsConfigurationNeeded()
             => throw new NotImplementedException();
 
-        public virtual bool CanConfigure()
+        public bool CanConfigure()
             => throw new NotImplementedException();
 
-        public virtual void Configure()
+        public void Configure()
             => throw new NotImplementedException();
 
         public string Name { get; }
     }
 
-    class AnyOtherSettings : CommandSettings
-    {
-    }
+    sealed class AnyOtherSettings : CommandSettings;
 
     [Test]
     public void HardwareCheckInterceptor_DoesNot_ThrowOnEmptyList()
@@ -85,8 +84,41 @@ public class HardwareCheckInterceptorTest
         // Assert
         action.Should().NotThrow();
         testConsole.Output.Should().NotContain("Exception");
-        A.CallTo(() => throwingConfigurer.CanConfigure()).MustHaveHappened();
         A.CallTo(() => throwingConfigurer.IsConfigurationNeeded()).MustHaveHappened();
+    }
+
+    [Test]
+    public void FakeHardwareCheckInterceptor_ShouldNotThrow_WhenUserDeclines()
+    {
+        // Arrange
+        var (cut, testConsole, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: true);
+
+        // Act
+        testConsole.Input.ForConfirm().PushAnswer(false);
+        var action = () => cut.Intercept(null, new BoardRunSettings());
+
+        // Assert
+        action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
+        testConsole.Output.Should().Contain("skipped");
+        A.CallTo(() => throwingConfigurer.IsConfigurationNeeded()).MustHaveHappened();
+    }
+
+    [Test]
+    public void HardwareCheckInterceptor_ShouldPrint_Successfully()
+    {
+        // Arrange
+        var (cut, testConsole, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: true, configure: true);
+
+        // Act
+        testConsole.Input.ForConfirm().PushAnswer(true);
+        var action = () => cut.Intercept(null, new BoardRunSettings());
+
+        // Assert
+        action.Should().NotThrow();
+        testConsole.Output.Should().NotContain("Exception");
+        testConsole.Output.Should().Contain("successfully");
+        A.CallTo(() => throwingConfigurer.Configure()).MustHaveHappened();
     }
 
     [Test]
@@ -96,7 +128,7 @@ public class HardwareCheckInterceptorTest
         var (cut, testConsole, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: true);
 
         // Act
-        testConsole.Input.PushKey(ConsoleKey.Enter);
+        testConsole.Input.ForConfirm().PushAnswer(true);
         var action = () => cut.Intercept(null, new BoardRunSettings());
 
         // Assert
@@ -106,7 +138,8 @@ public class HardwareCheckInterceptorTest
         A.CallTo(() => throwingConfigurer.IsConfigurationNeeded()).MustHaveHappened();
     }
 
-    private static (HardwareCheckInterceptor cut, TestConsole testConsole, ISystemConfigurer throwingConfigurer) Get(bool? canConfigure = null, bool? isConfigurationNeeded = null)
+    private static (HardwareCheckInterceptor cut, TestConsole testConsole, ISystemConfigurer throwingConfigurer) Get(
+        bool? canConfigure = null, bool? isConfigurationNeeded = null, bool? configure = null)
     {
         var throwingConfigurer = A.Fake<ISystemConfigurer>(x => x.Wrapping(new ThrowingConfigurer()));
 
@@ -120,6 +153,12 @@ public class HardwareCheckInterceptorTest
         {
             A.CallTo(() => throwingConfigurer.IsConfigurationNeeded())
                 .Returns((bool)isConfigurationNeeded);
+        }
+
+        if (configure is not null)
+        {
+            A.CallTo(() => throwingConfigurer.Configure())
+                .DoesNothing();
         }
 
         var testConsole = new TestConsole();
