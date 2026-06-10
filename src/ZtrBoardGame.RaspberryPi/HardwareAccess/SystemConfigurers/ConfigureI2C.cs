@@ -1,11 +1,14 @@
-﻿namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+
+[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 class ConfigureI2C() : ISystemConfigurer
 {
     public string Name => "I2C Bus";
 
     public bool CanConfigure()
-        => RaspberryPiCommandHelper.IsRaspberryPi();
+        => RaspberryPiCommandHelper.IsRaspberryPiRoot();
 
     public bool IsConfigurationNeeded()
         => !IsI2CEnabled();

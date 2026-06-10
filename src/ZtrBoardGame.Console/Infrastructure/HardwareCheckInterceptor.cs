@@ -38,7 +38,7 @@ class HardwareCheckInterceptor(IAnsiConsole console, IOptions<HardwareConfigurat
 
             if (!isConfigNeeded)
             {
-                return;
+                continue;
             }
 
             console.Write(new Rule($"[yellow]Hardware configuration for {systemConfigurer.Name} is required.[/]"));

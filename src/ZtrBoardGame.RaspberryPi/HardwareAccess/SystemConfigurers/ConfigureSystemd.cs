@@ -1,19 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.Console.Infrastructure;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
+[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 {
-    public string Name => "Raspberry Pi";
+    public string Name => "Systemd Autostart Service";
 
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";
     private const string RealAppPath = "/home/mikolaj/ZtrBoardGame.Console-linux-arm64-alpha.AppImage";
 
     public bool CanConfigure()
-        => RaspberryPiCommandHelper.IsRaspberryPi();
+        => RaspberryPiCommandHelper.IsRaspberryPiRoot();
 
     public bool IsConfigurationNeeded()
         => !IsServiceConfigured();
@@ -69,7 +71,7 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 
         if (!File.Exists(RealAppPath))
         {
-            throw new FileNotFoundException($"CRITICAL: Nie znaleziono pliku: {RealAppPath}");
+            throw new FileNotFoundException($"Executable file not found: {RealAppPath}");
         }
 
         var workingDirectory = Path.GetDirectoryName(RealAppPath);

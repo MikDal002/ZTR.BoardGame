@@ -1,12 +1,15 @@
-﻿namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+
+[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 public class ConfigureAvahi() : ISystemConfigurer
 {
     public bool IsConfigurationNeeded()
         => !IsAvahiInstalled();
 
     public bool CanConfigure()
-        => RaspberryPiCommandHelper.IsRaspberryPi();
+        => RaspberryPiCommandHelper.IsRaspberryPiRoot();
 
     public void Configure()
         => InstallAvahi();
@@ -27,5 +30,8 @@ public class ConfigureAvahi() : ISystemConfigurer
     }
 
     private static void InstallAvahi()
-        => RaspberryPiCommandHelper.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+    {
+        RaspberryPiCommandHelper.RunUpdate();
+        RaspberryPiCommandHelper.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+    }
 }
