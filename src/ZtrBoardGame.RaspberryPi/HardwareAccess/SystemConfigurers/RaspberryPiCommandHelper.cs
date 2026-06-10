@@ -81,7 +81,7 @@ internal static class RaspberryPiCommandHelper
 
         if (process.ExitCode != 0)
         {
-            throw new InvalidOperationException($"{errorMessage} (Exit Code: {process.ExitCode})");
+            throw new InvalidOperationException($"{errorMessage} (Exit Code: {process.ExitCode}) with content {process.StandardError.ReadToEnd()}");
         }
 
         return output.Trim();
