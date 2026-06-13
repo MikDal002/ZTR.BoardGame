@@ -14,6 +14,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="FakeItEasy" Version="9.0.1" />
+    <PackageReference Include="FakeItEasy.Analyzer.CSharp" Version="6.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
@@ -37,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ZtrBoardGame.Console\ZtrBoardGame.Console.csproj" />
     <ProjectReference Include="..\..\src\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj" />
+    <ProjectReference Include="..\..\src\ZtrBoardGame.RaspberryPi\ZtrBoardGame.RaspberryPi.csproj" />
   </ItemGroup>
 
 </Project>

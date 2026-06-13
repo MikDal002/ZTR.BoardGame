@@ -1,7 +1,6 @@
 using Spectre.Console.Cli;
 using System;
 using System.ComponentModel;
-// Required for DescriptionAttribute
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
