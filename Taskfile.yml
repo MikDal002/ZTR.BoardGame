@@ -2,15 +2,7 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, world!
-
 tasks:
-  default:
-    desc: Print a greeting message
-    cmds:
-      - echo "{{.GREETING}}"
-    silent: true
   pack-for-rpi:
     desc: Pack the project using Velopack
     cmds:
