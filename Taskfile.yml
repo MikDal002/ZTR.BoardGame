@@ -8,23 +8,19 @@ tasks:
     cmds:
       - pwsh -File build.ps1 PackWithVelopack  --SystemArchitecture arm64 --OperationSystem linux --skip UnitTests E2ETests Format PublishToGitHubWithVelopack CreateVersionLabel
     sources:
-      - /**/*.cs
-      - /**/*.csproj
+      - src/**/*.cs
+      - src/**/*.csproj
+      - build/**/*.cs
     generates:
       - /Velopack/publish/**.*
-
-  # This i need to handle somehow to check only existance, not installation all the time...
-  install-posh-ssh-module:
-    cmds:
-      # - pwsh -c "Install-Module -Name Posh-SSH"
 
   publish-to-rpi:
     summary: >-
       This method builds and packs application for RaspberryPi and uploads it using a single credential prompt.
     vars:
-      LOGIN: "mikolaj"
-      REMOTE_NAME: "raspberrypi01"
-    deps: [install-posh-ssh-module, pack-for-rpi]
+      LOGIN: '{{ .LOGIN | default "mikolaj" }}'
+      REMOTE_NAME: '{{ .REMOTE_NAME | default "raspberrypi01" }}'
+    deps: [pack-for-rpi]
     cmds:
       - pwsh -File publish-to-rpi.ps1 -Login "{{.LOGIN}}" -RemoteName "{{.REMOTE_NAME}}"
 
@@ -33,7 +29,7 @@ tasks:
     summary: >-
       This recipe gets information about voltage throttling using the `vcgencmd get_throttled` command.
     vars:
-      LOGIN: "mikolaj"
-      REMOTE_NAME: "raspberrypi01"
+      LOGIN: '{{ .LOGIN | default "mikolaj" }}'
+      REMOTE_NAME: '{{ .REMOTE_NAME | default "raspberrypi01" }}'
     cmds:
       - ssh {{.LOGIN}}@{{.REMOTE_NAME}} "vcgencmd get_throttled"

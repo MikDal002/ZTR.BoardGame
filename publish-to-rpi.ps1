@@ -7,42 +7,31 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$cred = Get-Credential -UserName $Login -Message "Podaj haslo dla $RemoteName"
-$session = New-SSHSession -ComputerName $RemoteName -Credential $cred -Verbose
-
-if ($null -eq $session) {
-    throw "Nie udalo sie nawiazac polaczenia SSH do $RemoteName."
-}
-
 try {
-    $sid = $session.SessionId
-    $appImageName = "ZtrBoardGame.Console-linux-arm64-alpha.AppImage"
+    # 1. Znalezienie pliku AppImage
+    $appImagePath = Get-ChildItem "Velopack\publish\*.AppImage" | Select-Object -First 1 -ExpandProperty FullName
+    if (-not $appImagePath) { throw "No AppImage found." }
+    $appImageName = Split-Path $appImagePath -Leaf
+
+    $Remote = "$Login@$RemoteName"
     $remotePath = "/home/$Login/$appImageName"
     $remoteOldPath = "$remotePath.old"
 
-    Write-Host "Zatrzymywanie uslugi i zwalnianie blokad na $RemoteName..." -ForegroundColor Cyan
-    Invoke-SSHCommand -SessionId $sid -Command "sudo systemctl stop ztrboardgame.service && sudo fuser -k $remotePath || true" -Verbose
+    Write-Host "Publishing to $RemoteName (you will be asked for password once)..." -ForegroundColor Cyan
 
-    Write-Host "Przenoszenie starej wersji..." -ForegroundColor Cyan
-    Invoke-SSHCommand -SessionId $sid -Command "sudo mv -f $remotePath $remoteOldPath || true" -Verbose
+    # 2. Pełna sekwencja w jednym połączeniu SSH
+    $remoteCommand = "sudo systemctl stop ztrboardgame.service; " +
+                     "sudo mv -f $remotePath $remoteOldPath 2>/dev/null || true; " +
+                     "cat > $remotePath; " +
+                     "chmod +x $remotePath; " +
+                     "sudo rm -f $remoteOldPath; " +
+                     "sudo systemctl start ztrboardgame.service"
 
-    Write-Host "Przesylanie nowego AppImage..." -ForegroundColor Cyan
-    Set-SCPItem -ComputerName $RemoteName -Credential $cred -Path "Velopack\publish\$appImageName" -Destination "/home/$Login" -Force -Verbose
+    Get-Content $appImagePath -AsByteStream -Raw | ssh $Remote $remoteCommand
 
-    Write-Host "Nadawanie uprawnien i sprzatanie..." -ForegroundColor Cyan
-    Invoke-SSHCommand -SessionId $sid -Command "chmod +x $remotePath && sudo rm -f $remoteOldPath" -Verbose
-
-    Write-Host "Restartowanie uslugi..." -ForegroundColor Cyan
-    Invoke-SSHCommand -SessionId $sid -Command "sudo systemctl start ztrboardgame.service" -Verbose
-
-    Write-Host "Publikacja zakonczona sukcesem!" -ForegroundColor Green
+    Write-Host "Publishing completed successfully!" -ForegroundColor Green
 }
 catch {
-    Write-Error "Wystapil blad podczas publikacji: $($_.Exception.Message)"
+    Write-Error "Error: $($_.Exception.Message)"
     exit 1
-}
-finally {
-    if ($session) {
-        Remove-SSHSession -SessionId $session.SessionId -Verbose
-    }
 }
