@@ -93,17 +93,25 @@ public partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Log.Information($"Compiling {GitVersion.SemVer} version");
+            Log.Information($"Compiling {GitVersion?.SemVer ?? "0.0.0"} version");
 
-            DotNetTasks.DotNetBuild(s => s
-                .SetProjectFile(ProjectToPublish)
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetRuntime(Runtime)
-                .SetTreatWarningsAsErrors(true)
-                .EnableNoRestore());
+            DotNetTasks.DotNetBuild(s =>
+            {
+                s = s.SetProjectFile(ProjectToPublish)
+                    .SetConfiguration(Configuration)
+                    .SetRuntime(Runtime)
+                    .SetTreatWarningsAsErrors(true)
+                    .EnableNoRestore();
+
+                if (GitVersion != null)
+                {
+                    s = s.SetAssemblyVersion(GitVersion.AssemblySemVer)
+                        .SetFileVersion(GitVersion.AssemblySemFileVer)
+                        .SetInformationalVersion(GitVersion.InformationalVersion);
+                }
+
+                return s;
+            });
         });
 
     Target Publish => _ => _
@@ -116,22 +124,30 @@ public partial class Build : NukeBuild
             Log.Information("Publishing {projectToPublish} project to {filePath} directory.", ProjectToPublish,
                 PublishDirectory);
 
-            DotNetTasks.DotNetPublish(s => s.SetProject(ProjectToPublish)
-                .SetConfiguration(Configuration)
-                .SetOutput(PublishDirectory)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetSelfContained(true)
-                .SetPublishTrimmed(true)
-                .SetRuntime(Runtime)
-                .SetNoBuild(true)
-                );
+            DotNetTasks.DotNetPublish(s =>
+            {
+                s = s.SetProject(ProjectToPublish)
+                    .SetConfiguration(Configuration)
+                    .SetOutput(PublishDirectory)
+                    .SetSelfContained(true)
+                    .SetPublishTrimmed(true)
+                    .SetRuntime(Runtime)
+                    .SetNoBuild(true);
+
+                if (GitVersion != null)
+                {
+                    s = s.SetAssemblyVersion(GitVersion.AssemblySemVer)
+                        .SetFileVersion(GitVersion.AssemblySemFileVer)
+                        .SetInformationalVersion(GitVersion.InformationalVersion);
+                }
+
+                return s;
+            });
         });
 
     Target CreateVersionLabel => _ => _
         .TriggeredBy(Publish)
-        .OnlyWhenStatic(() => GitRepository.IsOnMainOrMasterBranch() || GitRepository.IsOnDevelopBranch())
+        .Requires(() => GitVersion)
         .Executes(() =>
         {
             var sanitizedVersion = SanitizeGitTag(GitVersion.FullSemVer);

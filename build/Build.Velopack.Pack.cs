@@ -16,7 +16,7 @@ partial class Build
 {
     [NuGetPackage("vpk", "vpk.dll")] public readonly Tool Vpk;
 
-    string Channel => $"{OperationSystem}-{SystemArchitecture}" + (GitVersion.PreReleaseLabel.IsNullOrWhiteSpace() ? "" : "-alpha");
+    string Channel => $"{OperationSystem}-{SystemArchitecture}" + (GitVersion?.PreReleaseLabel.IsNullOrWhiteSpace() == false ? "-alpha" : "");
 
     AbsolutePath VelopackRootDirectory = RootDirectory / "Velopack";
     AbsolutePath VelopackPublish => VelopackRootDirectory / "publish";
@@ -32,6 +32,7 @@ partial class Build
         .DependsOn(ConfigureAppSettings)
         .DependsOn(Publish)
         .DependsOn(CleanVelopack)
+        .Requires(() => GitVersion)
         .Executes(() =>
         {
             var iconPath = ProjectToPublish.Directory / "applogo.ico";
