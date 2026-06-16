@@ -29,6 +29,7 @@ partial class Build
         .Before(PackWithVelopack)
         .After(CleanVelopack)
         .Requires(() => GitHubToken)
+        .Requires(() => GitVersion)
         .OnlyWhenStatic(() => GitRepository.IsGitHubRepository())
         .Executes(() =>
         {
@@ -53,6 +54,7 @@ partial class Build
         .DependsOn(PackWithVelopack)
         .DependsOn(DownloadGithubRelease)
         .Requires(() => GitHubToken)
+        .Requires(() => GitVersion)
         .OnlyWhenStatic(() => GitRepository.IsGitHubRepository())
         .Executes(() =>
         {
