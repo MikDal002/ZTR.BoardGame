@@ -20,11 +20,11 @@ public static class RaspberryPiDependenciesInstaller
 
     public static IServiceCollection AddRaspberryPiHardwareConfigurers(this IServiceCollection services)
     {
-        services.AddTransient<ISystemConfigurer, SystemdConfigurer>();
-        services.AddTransient<ISystemConfigurer, AvahiConfigurer>();
-        services.AddTransient<ISystemConfigurer, I2CConfigurer>();
+        services.AddTransient<ISystemConfigurer, ConfigureSystemd>();
+        services.AddTransient<ISystemConfigurer, ConfigureAvahi>();
+        services.AddTransient<ISystemConfigurer, ConfigureI2C>();
         services.AddTransient<ISystemConfigurer, BootConfigSystemConfigurer>();
-        services.AddTransient<ISystemConfigurer, UsbPowerSystemConfigurer>();
+        services.AddTransient<ISystemConfigurer, ConfigureUsbPowerSystem>();
         return services;
     }
 }

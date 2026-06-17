@@ -1,37 +1,46 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.Extensions.Logging;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
-public class ConfigureAvahi() : ISystemConfigurer
+class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
 {
-    public async Task<bool> IsConfigurationNeededAsync()
-        => !await IsAvahiInstalledAsync();
+    public static bool CanConfigure()
+        => RaspberryPiSystemInfo.IsRaspberryPi();
 
-    public Task<bool> CanConfigureAsync()
-        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
+    public async Task<bool> IsConfigurationNeededAsync()
+    {
+        var isAvahiInstalled = await IsAvahiInstalledAsync();
+        logger.LogInformation(
+            "System check -> Avahi Installed: {Avahi}", isAvahiInstalled);
+        return !isAvahiInstalled;
+    }
 
     public async Task ConfigureAsync()
-        => await InstallAvahi();
+        => await InstallAvahiAsync();
 
-    public string Name => "Avahi";
+    public string Name { get; } = "Avahi";
+
+    private async Task InstallAvahiAsync()
+    {
+        logger.LogInformation("Installing avahi-daemon...");
+        await RaspberryPiSystemInfo.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+    }
 
     private static async Task<bool> IsAvahiInstalledAsync()
     {
         try
         {
-            await RaspberryPiCommandHelper.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true);
+            await RaspberryPiSystemInfo.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true, redirectStandardError: true);
             return true;
         }
-        catch (InvalidOperationException)
+        catch
         {
             return false;
         }
     }
 
-    private static async Task InstallAvahi()
+    public Task<bool> CanConfigureAsync()
     {
-        await RaspberryPiCommandHelper.RunUpdate();
-        await RaspberryPiCommandHelper.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+        throw new NotImplementedException();
     }
 }

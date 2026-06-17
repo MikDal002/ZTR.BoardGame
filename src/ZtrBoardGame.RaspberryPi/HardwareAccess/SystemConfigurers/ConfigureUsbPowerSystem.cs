@@ -3,7 +3,7 @@ using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
 
-class UsbPowerSystemConfigurer(ILogger<UsbPowerSystemConfigurer> logger) : ISystemConfigurer
+class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystemConfigurer
 {
     private const string CronEntry = "@reboot sudo uhubctl -l 1 -a off && sudo uhubctl -l 3 -a off";
 

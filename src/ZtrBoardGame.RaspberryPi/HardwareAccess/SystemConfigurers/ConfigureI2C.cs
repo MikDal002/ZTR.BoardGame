@@ -1,26 +1,31 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.Extensions.Logging;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
-class ConfigureI2C() : ISystemConfigurer
+#pragma warning disable S101 // This name is appropriate for physical interface I2C.
+class ConfigureI2C(ILogger<ConfigureI2C> logger) : ISystemConfigurer
+#pragma warning restore S101
 {
-    public string Name => "I2C Bus";
-
-    public async Task<bool> CanConfigureAsync()
-        => await RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
+    public static bool CanConfigure()
+        => RaspberryPiSystemInfo.IsRaspberryPi();
 
     public async Task<bool> IsConfigurationNeededAsync()
-        => !await IsI2CEnabledAsync();
+    {
+        var i2cEnabled = await IsI2CEnabledAsync();
+        logger.LogInformation("System check -> I2C Enabled: {I2C}", i2cEnabled);
+        return !i2cEnabled;
+    }
 
     public async Task ConfigureAsync()
         => await EnableI2CAsync();
+
+    public string Name { get; } = "I2C";
 
     private static async Task<bool> IsI2CEnabledAsync()
     {
         try
         {
-            var output = await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
+            var output = await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
                 redirectStandardOutput: true);
             return output == "0";
         }
@@ -30,6 +35,14 @@ class ConfigureI2C() : ISystemConfigurer
         }
     }
 
-    private static async Task EnableI2CAsync()
-        => await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
+    private async Task EnableI2CAsync()
+    {
+        logger.LogInformation("Enabling I2C");
+        await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
+    }
+
+    public Task<bool> CanConfigureAsync()
+    {
+        throw new NotImplementedException();
+    }
 }
