@@ -1,65 +1,122 @@
+﻿using FakeItEasy;
 using Microsoft.Extensions.Logging.Abstractions;
-using Spectre.Console.Testing;
 using ZtrBoardGame.Console.Commands.Setup;
-using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.Tests.Infrastructure;
 
 [TestFixture]
-[TestOf(typeof(HardwareCheckInterceptor))]
-public class HardwareCheckInterceptorTest
+[TestOf(typeof(SystemConfiguratorOrchestrator))]
+public class SystemConfiguratorOrchestratorTest
 {
-    private TestConsole _console;
-    private HardwareCheckInterceptor _interceptor;
-    private List<ISystemConfigurer> _configurers;
-
-    [SetUp]
-    public void SetUp()
+    sealed class ThrowingConfigurer() : ISystemConfigurer
     {
-        _console = new TestConsole();
-        _configurers = new List<ISystemConfigurer>();
-        var orchestrator = new SystemConfiguratorOrchestrator(_configurers, NullLogger<SystemConfiguratorOrchestrator>.Instance);
-        _interceptor = new HardwareCheckInterceptor(_console, orchestrator);
-    }
+        public Task<bool> IsConfigurationNeededAsync()
+            => throw new NotImplementedException();
 
-    [TearDown]
-    public void TearDown()
-    {
-        _console?.Dispose();
+        public bool CanConfigure()
+            => throw new NotImplementedException();
+
+        public Task ConfigureAsync()
+            => throw new NotImplementedException();
+
+        public string Name { get; }
     }
 
     [Test]
-    public void Intercept_WhenNoSystemsNeedConfiguration_ShouldNotPrintWarning()
-    {
-        // Act
-        _interceptor.Intercept(null!, null!);
-
-        // Assert
-        _console.Output.Should().BeEmpty();
-    }
-
-    [Test]
-    public void Intercept_WhenSystemsNeedConfiguration_ShouldPrintWarning()
+    public async Task HardwareCheckInterceptor_DoesNot_ThrowOnEmptyList()
     {
         // Arrange
-        _configurers.Add(new FakeSystemConfigurer { Name = "TestSystem" });
+        var cut = new SystemConfiguratorOrchestrator([], NullLogger<SystemConfiguratorOrchestrator>.Instance);
 
         // Act
-        _interceptor.Intercept(null!, null!);
+        var listAsync = await cut.GetSystemsWhichNeedsConfiguration().ToListAsync();
 
         // Assert
-        _console.Output.Should().Contain("Below systems require configuration:");
-        _console.Output.Should().Contain("- TestSystem");
-        _console.Output.Should().Contain("Run Setup command to run configuration.");
+        listAsync.Should().BeEmpty();
     }
 
-    private class FakeSystemConfigurer : ISystemConfigurer
+    [Test]
+    public async Task HardwareCheckInterceptor_DoNotProcess_WhenCannotConfigure()
     {
-        public string Name { get; set; } = string.Empty;
+        // Arrange
+        var (cut, _) = Get(canConfigure: false);
 
-        public Task<bool> IsConfigurationNeededAsync() => Task.FromResult(true);
-        public Task<bool> CanConfigureAsync() => Task.FromResult(true);
-        public Task ConfigureAsync() => Task.CompletedTask;
+        // Act
+        var listAsync = await cut.GetSystemsWhichNeedsConfiguration().ToListAsync();
+
+        // Assert
+        listAsync.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task HardwareCheckInterceptor_DoNotProcess_WhenConfigurationIsntNeeded()
+    {
+        var (cut, _) = Get(canConfigure: true, isConfigurationNeeded: false);
+
+        // Act
+        var listAsync = await cut.GetSystemsWhichNeedsConfiguration().ToListAsync();
+
+        // Assert
+        listAsync.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task HardwareCheckInterceptor_ShouldPrint_Successfully()
+    {
+        // Arrange
+        var (cut, _) = Get(canConfigure: true, isConfigurationNeeded: true, configure: true);
+
+        // Act
+        var listAsync = await cut.GetSystemsWhichNeedsConfiguration().ToListAsync();
+
+        // Assert
+        listAsync.Should().HaveCount(1);
+    }
+
+    [Test]
+    public async Task FakeHardwareCheckInterceptor_ShouldThrow_WhenUserAccepts()
+    {
+        // Arrange
+        var (cut, throwingConfigurer) = Get(canConfigure: true, isConfigurationNeeded: true);
+
+        // Act
+        var action = async () => await cut.GetSystemsWhichNeedsConfiguration().ToListAsync();
+
+        // Assert
+        await action.Should().NotThrowAsync();
+        A.CallTo(() => throwingConfigurer.CanConfigure()).MustHaveHappened();
+        A.CallTo(() => throwingConfigurer.IsConfigurationNeededAsync()).MustHaveHappened();
+    }
+
+    private static (SystemConfiguratorOrchestrator cut, ISystemConfigurer throwingConfigurer) Get(
+        bool? canConfigure = null, bool? isConfigurationNeeded = null, bool? configure = null)
+    {
+        var throwingConfigurer = A.Fake<ISystemConfigurer>(x => x.Wrapping(new ThrowingConfigurer()));
+
+        if (canConfigure is not null)
+        {
+            A.CallTo(() => throwingConfigurer.CanConfigure())
+                .Returns((bool)canConfigure);
+        }
+
+        if (isConfigurationNeeded is not null)
+        {
+            A.CallTo(() => throwingConfigurer.IsConfigurationNeededAsync())
+                .Returns((bool)isConfigurationNeeded);
+        }
+
+        if (configure is not null)
+        {
+            A.CallTo(() => throwingConfigurer.ConfigureAsync())
+                .DoesNothing();
+        }
+
+        var cut = new SystemConfiguratorOrchestrator(
+            [throwingConfigurer],
+            NullLogger<SystemConfiguratorOrchestrator>.Instance
+        );
+
+        return (cut, throwingConfigurer);
     }
 }
