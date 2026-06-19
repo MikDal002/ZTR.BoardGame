@@ -7,18 +7,26 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 [ExcludeFromCodeCoverage(Justification = "This runs real code")]
 internal static class RaspberryPiCommandHelper
 {
-    private static bool? _isRaspberryPi = false;
-    private static readonly Lock APT_SYNC_CONTEXT = new();
-    private static readonly Lock RASPBERRYPI_CHECK_SYNC_CONTEXT = new();
+    private static bool? _isRaspberryPi = null;
+    private static bool _wasUpdateRun = false;
+    private static readonly SemaphoreSlim APT_SYNC_CONTEXT = new(1, 1);
+    private static readonly SemaphoreSlim RASPBERRYPI_CHECK_SYNC_CONTEXT = new(1, 1);
 
-    public static bool IsRaspberryPiRoot()
+    public static async Task<bool> IsRaspberryPiRootAsync()
     {
-        using var _ = RASPBERRYPI_CHECK_SYNC_CONTEXT.EnterScope();
+        try
+        {
+            await RASPBERRYPI_CHECK_SYNC_CONTEXT.WaitAsync();
 
-        _isRaspberryPi ??= IsRaspberryPiRootPriv();
-        return _isRaspberryPi.Value;
+            _isRaspberryPi ??= await IsRaspberryPiRootPrivAsymc();
+            return _isRaspberryPi.Value;
+        }
+        finally
+        {
+            RASPBERRYPI_CHECK_SYNC_CONTEXT.Release();
+        }
 
-        bool IsRaspberryPiRootPriv()
+        async Task<bool> IsRaspberryPiRootPrivAsymc()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -35,7 +43,7 @@ internal static class RaspberryPiCommandHelper
                 const string modelPath = "/proc/device-tree/model";
                 if (File.Exists(modelPath))
                 {
-                    var model = File.ReadAllText(modelPath);
+                    var model = await File.ReadAllTextAsync(modelPath);
                     return model.Contains("Raspberry Pi", StringComparison.OrdinalIgnoreCase);
                 }
             }
@@ -48,11 +56,45 @@ internal static class RaspberryPiCommandHelper
         }
     }
 
-    public static string RunCommand(string command, string arguments, string errorMessage,
-        bool redirectStandardOutput = false, bool redirectStandardError = false)
+    public static async Task<string> RunCommandAsync(string command, string arguments, string errorMessage,
+        bool redirectStandardOutput = false)
     {
-        using var enterScope = APT_SYNC_CONTEXT.EnterScope();
+        try
+        {
+            await APT_SYNC_CONTEXT.WaitAsync();
 
+            return await RunCommandInternalAsync(command, arguments, errorMessage, redirectStandardOutput);
+        }
+        finally
+        {
+            APT_SYNC_CONTEXT.Release();
+        }
+    }
+
+    public static async Task RunUpdate()
+    {
+        try
+        {
+            await APT_SYNC_CONTEXT.WaitAsync();
+
+            if (_wasUpdateRun)
+            {
+                return;
+            }
+
+            await RunCommandInternalAsync("apt-get", "update", "Cannot run apt-get update");
+
+            _wasUpdateRun = true;
+        }
+        finally
+        {
+            APT_SYNC_CONTEXT.Release();
+        }
+    }
+
+    static async Task<string> RunCommandInternalAsync(string command, string arguments, string errorMessage,
+        bool redirectStandardOutput = false)
+    {
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = command,
@@ -60,7 +102,7 @@ internal static class RaspberryPiCommandHelper
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = redirectStandardOutput,
-            RedirectStandardError = redirectStandardError
+            RedirectStandardError = true
         };
 
         using var process = Process.Start(processStartInfo);
@@ -74,32 +116,19 @@ internal static class RaspberryPiCommandHelper
 
         if (redirectStandardOutput)
         {
-            output = process.StandardOutput.ReadToEnd();
+            output = await process.StandardOutput.ReadToEndAsync();
         }
 
-        process.WaitForExit();
+        await process.WaitForExitAsync();
 
-        if (process.ExitCode != 0)
+        if (process.ExitCode == 0)
         {
-            throw new InvalidOperationException($"{errorMessage} (Exit Code: {process.ExitCode}) with content {process.StandardError.ReadToEnd()}");
+            return output.Trim();
         }
 
-        return output.Trim();
-    }
+        var readToEndAsync = await process.StandardError.ReadToEndAsync();
+        throw new InvalidOperationException(
+            $"{errorMessage} (Exit Code: {process.ExitCode}) with content {readToEndAsync}");
 
-    private static bool _wasUpdateRun = false;
-
-    public static void RunUpdate()
-    {
-        using var enterScope = APT_SYNC_CONTEXT.EnterScope();
-
-        if (_wasUpdateRun)
-        {
-            return;
-        }
-
-        RunCommand("apt-get", "update", "Cannot run apt-get update");
-
-        _wasUpdateRun = true;
     }
 }

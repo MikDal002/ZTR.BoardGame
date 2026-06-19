@@ -7,20 +7,20 @@ class ConfigureI2C() : ISystemConfigurer
 {
     public string Name => "I2C Bus";
 
-    public bool CanConfigure()
-        => RaspberryPiCommandHelper.IsRaspberryPiRoot();
+    public async Task<bool> CanConfigureAsync()
+        => await RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
-    public bool IsConfigurationNeeded()
-        => !IsI2CEnabled();
+    public async Task<bool> IsConfigurationNeededAsync()
+        => !await IsI2CEnabledAsync();
 
-    public void Configure()
-        => EnableI2C();
+    public async Task ConfigureAsync()
+        => await EnableI2CAsync();
 
-    private static bool IsI2CEnabled()
+    private static async Task<bool> IsI2CEnabledAsync()
     {
         try
         {
-            var output = RaspberryPiCommandHelper.RunCommand("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
+            var output = await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
                 redirectStandardOutput: true);
             return output == "0";
         }
@@ -30,6 +30,6 @@ class ConfigureI2C() : ISystemConfigurer
         }
     }
 
-    private static void EnableI2C()
-        => RaspberryPiCommandHelper.RunCommand("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
+    private static async Task EnableI2CAsync()
+        => await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
 }

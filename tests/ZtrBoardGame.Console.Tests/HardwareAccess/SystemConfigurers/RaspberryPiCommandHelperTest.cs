@@ -8,10 +8,10 @@ public class RaspberryPiCommandHelperTest
 {
 
     [Test]
-    public void IsRaspberryPiRoot_ReturnsFalse_WhenNotOnRaspberryPi()
+    public async Task IsRaspberryPiRoot_ReturnsFalse_WhenNotOnRaspberryPi()
     {
         // Arrange & Act
-        var isRaspberryPiRoot = RaspberryPiCommandHelper.IsRaspberryPiRoot();
+        var isRaspberryPiRoot = await RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
         // Assert
         isRaspberryPiRoot.Should().BeFalse();

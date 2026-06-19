@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Velopack;
 using ZtrBoardGame.Console.Commands.Board;
 using ZtrBoardGame.Console.Commands.PC;
+using ZtrBoardGame.Console.Commands.Setup;
 using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.Console.Infrastructure;
 
@@ -17,10 +18,10 @@ public static class Program
         VelopackApp.Build()
             .Run();
 
-        var (processedArgs, enableConsoleLogging, hardwareConfigurationSettings) = args.ProcessGlobalOptions();
+        var (processedArgs, enableConsoleLogging) = args.ProcessGlobalOptions();
         processedArgs = ApplyDefaultWindowsArguments(processedArgs);
 
-        var typeRegistrar = new TypeRegistrar(enableConsoleLogging, hardwareConfigurationSettings);
+        var typeRegistrar = new TypeRegistrar(enableConsoleLogging);
         var app = new CommandApp(typeRegistrar);
 
         app.Configure(config =>
@@ -33,7 +34,6 @@ public static class Program
             config.SetApplicationName("ZtrBoardGame.Console");
             config.SetHelpProvider(new CustomHelpProvider(config.Settings));
 
-            config.AddCommand<ExampleCommand>("commandName");
             config.AddBranch("board", board =>
             {
                 board.AddCommand<BoardRunCommand>("run");
@@ -44,6 +44,8 @@ public static class Program
             });
             config.AddCommand<UpdateCommand>("version")
                 .WithExample("version", "--update");
+
+            config.AddCommand<SetupCommand>("setup");
 
             config.SetExceptionHandler((ex, _) =>
             {

@@ -5,33 +5,33 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 [ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 public class ConfigureAvahi() : ISystemConfigurer
 {
-    public bool IsConfigurationNeeded()
-        => !IsAvahiInstalled();
+    public async Task<bool> IsConfigurationNeededAsync()
+        => !await IsAvahiInstalledAsync();
 
-    public bool CanConfigure()
-        => RaspberryPiCommandHelper.IsRaspberryPiRoot();
+    public Task<bool> CanConfigureAsync()
+        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
-    public void Configure()
-        => InstallAvahi();
+    public async Task ConfigureAsync()
+        => await InstallAvahi();
 
     public string Name => "Avahi";
 
-    private static bool IsAvahiInstalled()
+    private static async Task<bool> IsAvahiInstalledAsync()
     {
         try
         {
-            RaspberryPiCommandHelper.RunCommand("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true, redirectStandardError: true);
+            await RaspberryPiCommandHelper.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true);
             return true;
         }
-        catch
+        catch (InvalidOperationException)
         {
             return false;
         }
     }
 
-    private static void InstallAvahi()
+    private static async Task InstallAvahi()
     {
-        RaspberryPiCommandHelper.RunUpdate();
-        RaspberryPiCommandHelper.RunCommand("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
+        await RaspberryPiCommandHelper.RunUpdate();
+        await RaspberryPiCommandHelper.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
     }
 }
