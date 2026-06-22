@@ -17,7 +17,7 @@ public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator 
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken)
     {
-        var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemsWhichNeedsConfigurationAsync().ToListAsync();
+        var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemsWhichNeedsConfigurationAsync().ToListAsync(cancellationToken);
         var wasError = false;
 
         if (systemWhichNeedsConfiguration.Count == 0)
