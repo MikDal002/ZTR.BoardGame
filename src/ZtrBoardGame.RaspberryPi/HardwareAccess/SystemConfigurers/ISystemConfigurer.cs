@@ -2,8 +2,8 @@
 
 public interface ISystemConfigurer
 {
-    bool IsConfigurationNeeded();
-    bool CanConfigure();
-    void Configure();
+    Task<bool> IsConfigurationNeededAsync();
+    Task<bool> CanConfigureAsync();
+    Task ConfigureAsync();
     string Name { get; }
 }
