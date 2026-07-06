@@ -6,9 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.Base;
-using ZtrBoardGame.Console.Commands.Setup;
 
-namespace ZtrBoardGame.Console;
+namespace ZtrBoardGame.Console.Commands.Setup;
 
 public class SetupSettings : CommandSettings
 {
@@ -18,7 +17,8 @@ public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator 
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken)
     {
-        var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemsWhichNeedsConfiguration().ToListAsync();
+        var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemsWhichNeedsConfigurationAsync().ToListAsync(cancellationToken);
+        var wasError = false;
 
         if (systemWhichNeedsConfiguration.Count == 0)
         {
@@ -39,9 +39,10 @@ public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator 
             {
                 logger.LogError(e, "An error occurred while configuring {ConfigurerName}.", configurer.Name);
                 console.WriteException(e);
+                wasError = true;
             }
         }
 
-        return 0;
+        return wasError ? 1 : 0;
     }
 }

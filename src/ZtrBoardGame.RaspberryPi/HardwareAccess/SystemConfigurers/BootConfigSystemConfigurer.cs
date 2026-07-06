@@ -6,6 +6,7 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess;
 class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : ISystemConfigurer
 {
     private const string ConfigPath = "/boot/firmware/config.txt";
+    public string Name { get; } = "Boot Config";
 
     private readonly List<(string Key, string Value)> _configBlocks =
     [
@@ -20,8 +21,8 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
         ("gpu_mem", "16")
     ];
 
-    public static bool CanConfigure()
-        => RaspberryPiSystemInfo.IsRaspberryPi();
+    public Task<bool> CanConfigureAsync()
+        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
     {
@@ -107,11 +108,4 @@ class BootConfigSystemConfigurer(ILogger<BootConfigSystemConfigurer> logger) : I
             throw new SystemConfigurationException($"Failed to update hardware configuration in {ConfigPath}", ex);
         }
     }
-
-    public Task<bool> CanConfigureAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Name { get; } = "Boot Config";
 }

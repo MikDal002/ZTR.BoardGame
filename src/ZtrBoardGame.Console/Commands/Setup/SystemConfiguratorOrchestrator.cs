@@ -7,16 +7,16 @@ namespace ZtrBoardGame.Console.Commands.Setup;
 
 public interface ISystemConfiguratorOrchestrator
 {
-    IAsyncEnumerable<ISystemConfigurer> GetSystemsWhichNeedsConfiguration();
+    IAsyncEnumerable<ISystemConfigurer> GetSystemsWhichNeedsConfigurationAsync();
 }
 
 internal class SystemConfiguratorOrchestrator(IEnumerable<ISystemConfigurer> systemConfigurers, ILogger<SystemConfiguratorOrchestrator> logger) : ISystemConfiguratorOrchestrator
 {
-    public async IAsyncEnumerable<ISystemConfigurer> GetSystemsWhichNeedsConfiguration()
+    public async IAsyncEnumerable<ISystemConfigurer> GetSystemsWhichNeedsConfigurationAsync()
     {
         foreach (var configurer in systemConfigurers)
         {
-            if (!configurer.CanConfigure())
+            if (!await configurer.CanConfigureAsync())
             {
                 continue;
             }
@@ -42,4 +42,3 @@ internal class SystemConfiguratorOrchestrator(IEnumerable<ISystemConfigurer> sys
         }
     }
 }
-

@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
+[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
 {
-    public static bool CanConfigure()
-        => RaspberryPiSystemInfo.IsRaspberryPi();
-
     public async Task<bool> IsConfigurationNeededAsync()
     {
         var isAvahiInstalled = await IsAvahiInstalledAsync();
@@ -15,32 +14,30 @@ class ConfigureAvahi(ILogger<ConfigureAvahi> logger) : ISystemConfigurer
         return !isAvahiInstalled;
     }
 
+    public Task<bool> CanConfigureAsync()
+        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
+
     public async Task ConfigureAsync()
         => await InstallAvahiAsync();
 
-    public string Name { get; } = "Avahi";
-
-    private async Task InstallAvahiAsync()
-    {
-        logger.LogInformation("Installing avahi-daemon...");
-        await RaspberryPiSystemInfo.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
-    }
+    public string Name => "Avahi";
 
     private static async Task<bool> IsAvahiInstalledAsync()
     {
         try
         {
-            await RaspberryPiSystemInfo.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed", redirectStandardOutput: true, redirectStandardError: true);
+            await RaspberryPiCommandHelper.RunCommandAsync("dpkg", "-s avahi-daemon", "Cannot check if Avahi is installed");
             return true;
         }
-        catch
+        catch (InvalidOperationException)
         {
             return false;
         }
     }
 
-    public Task<bool> CanConfigureAsync()
+    private static async Task InstallAvahiAsync()
     {
-        throw new NotImplementedException();
+        await RaspberryPiCommandHelper.RunUpdate();
+        await RaspberryPiCommandHelper.RunCommandAsync("apt-get", "install -y avahi-daemon", "Cannot install avahi-daemon");
     }
 }

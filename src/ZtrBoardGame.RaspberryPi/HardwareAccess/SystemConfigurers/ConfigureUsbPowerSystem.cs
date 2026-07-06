@@ -9,10 +9,8 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
 
     public string Name => "USB Power Management (uhubctl)";
 
-    public static bool CanConfigure()
-    {
-        return RaspberryPiSystemInfo.IsRaspberryPi();
-    }
+    public Task<bool> CanConfigureAsync()
+        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
     {
@@ -46,7 +44,7 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
     {
         try
         {
-            await RaspberryPiSystemInfo.RunCommandAsync("dpkg", "-s uhubctl", "Check uhubctl status", redirectStandardOutput: true, redirectStandardError: true);
+            await RaspberryPiCommandHelper.RunCommandAsync("dpkg", "-s uhubctl", "Check uhubctl status");
             return true;
         }
         catch
@@ -60,7 +58,7 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
         try
         {
             // crontab -l returns 1 if no crontab for user, which throws exception in RunCommandAsync
-            var output = await RaspberryPiSystemInfo.RunCommandAsync("crontab", "-l", "Read crontab", redirectStandardOutput: true, redirectStandardError: true);
+            var output = await RaspberryPiCommandHelper.RunCommandAsync("crontab", "-l", "Read crontab");
             return output.Contains(CronEntry);
         }
         catch
@@ -72,7 +70,7 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
     private async Task InstallUhubctlAsync()
     {
         logger.LogInformation("Installing uhubctl...");
-        await RaspberryPiSystemInfo.RunCommandAsync("apt-get", "install -y uhubctl", "Cannot install uhubctl");
+        await RaspberryPiCommandHelper.RunCommandAsync("apt-get", "install -y uhubctl", "Cannot install uhubctl");
     }
 
     private async Task ConfigureCronAsync()
@@ -85,7 +83,7 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
             var currentCrontab = string.Empty;
             try
             {
-                currentCrontab = await RaspberryPiSystemInfo.RunCommandAsync("crontab", "-l", "Read crontab", redirectStandardOutput: true, redirectStandardError: true);
+                currentCrontab = await RaspberryPiCommandHelper.RunCommandAsync("crontab", "-l", "Read crontab");
             }
             catch
             {
@@ -102,7 +100,7 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
 
             try
             {
-                await RaspberryPiSystemInfo.RunCommandAsync("crontab", tempFile, "Update crontab");
+                await RaspberryPiCommandHelper.RunCommandAsync("crontab", tempFile, "Update crontab");
             }
             finally
             {
@@ -115,10 +113,5 @@ class ConfigureUsbPowerSystem(ILogger<ConfigureUsbPowerSystem> logger) : ISystem
         {
             throw new SystemConfigurationException("Failed to update crontab.", ex);
         }
-    }
-
-    public Task<bool> CanConfigureAsync()
-    {
-        throw new NotImplementedException();
     }
 }

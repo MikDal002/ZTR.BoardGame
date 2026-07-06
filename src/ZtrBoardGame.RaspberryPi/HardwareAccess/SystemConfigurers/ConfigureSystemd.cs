@@ -1,9 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
+[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
 class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 {
+    public string Name => "Systemd Autostart Service";
+
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";
 
@@ -14,6 +18,7 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
     /// </summary>
     private static string GetRealAppPath()
     {
+
         var appImagePath = Environment.GetEnvironmentVariable("APPIMAGE");
         if (string.IsNullOrEmpty(appImagePath))
         {
@@ -23,10 +28,8 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
         return appImagePath;
     }
 
-    public static bool CanConfigure()
-    {
-        return RaspberryPiSystemInfo.IsRaspberryPi();
-    }
+    public Task<bool> CanConfigureAsync()
+        => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
     {
@@ -37,8 +40,6 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 
     public async Task ConfigureAsync()
         => await InstallSystemdServiceAsync();
-
-    public string Name { get; } = "Systemd";
 
     private async Task<bool> IsServiceConfiguredAsync()
     {
@@ -65,7 +66,7 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
             return false;
         }
 
-        var status = await RaspberryPiSystemInfo.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status", redirectStandardOutput: true);
+        var status = await RaspberryPiCommandHelper.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status");
         return status.Trim() == "enabled";
 
     }
@@ -78,7 +79,7 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 
         if (!File.Exists(GetRealAppPath()))
         {
-            throw new FileNotFoundException($"CRITICAL: Nie znaleziono pliku: {GetRealAppPath()}");
+            throw new FileNotFoundException($"Executable file not found: {GetRealAppPath()}");
         }
 
         var workingDirectory = Path.GetDirectoryName(GetRealAppPath());
@@ -105,16 +106,11 @@ WantedBy=multi-user.target
 
         await File.WriteAllTextAsync(ServicePath, serviceContent);
 
-        await RaspberryPiSystemInfo.RunCommandAsync("systemctl", "daemon-reload", "Cannot reload systemd daemon");
-        await RaspberryPiSystemInfo.RunCommandAsync("systemctl", $"enable {ServiceName}", "Cannot enable service");
+        await RaspberryPiCommandHelper.RunCommandAsync("systemctl", "daemon-reload", "Cannot reload systemd daemon");
+        await RaspberryPiCommandHelper.RunCommandAsync("systemctl", $"enable {ServiceName}", "Cannot enable service");
 
         logger.LogInformation("Autostart configured successfully for executable file: `{Path} {Args}`", GetRealAppPath(), appArguments);
 
-    }
-
-    public Task<bool> CanConfigureAsync()
-    {
-        throw new NotImplementedException();
     }
 }
 

@@ -6,8 +6,10 @@ namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 class ConfigureI2C(ILogger<ConfigureI2C> logger) : ISystemConfigurer
 #pragma warning restore S101
 {
-    public static bool CanConfigure()
-        => RaspberryPiSystemInfo.IsRaspberryPi();
+    public string Name { get; } = "I2C";
+
+    public async Task<bool> CanConfigureAsync()
+        => await RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
     {
@@ -19,14 +21,11 @@ class ConfigureI2C(ILogger<ConfigureI2C> logger) : ISystemConfigurer
     public async Task ConfigureAsync()
         => await EnableI2CAsync();
 
-    public string Name { get; } = "I2C";
-
     private static async Task<bool> IsI2CEnabledAsync()
     {
         try
         {
-            var output = await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
-                redirectStandardOutput: true);
+            var output = await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled");
             return output == "0";
         }
         catch
@@ -38,11 +37,6 @@ class ConfigureI2C(ILogger<ConfigureI2C> logger) : ISystemConfigurer
     private async Task EnableI2CAsync()
     {
         logger.LogInformation("Enabling I2C");
-        await RaspberryPiSystemInfo.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
-    }
-
-    public Task<bool> CanConfigureAsync()
-    {
-        throw new NotImplementedException();
+        await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus");
     }
 }
