@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using Spectre.Console.Cli;
 using System.Linq;
 using System.Threading;
@@ -42,7 +41,6 @@ public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncComm
     {
         var builder = WebApplication.CreateBuilder(context.Arguments.ToArray());
         builder.Logging.ClearProviders();
-        builder.Logging.AddSerilog();
 
         var configurationStrategy = BuildConfigurationStrategy.GetStrategy(runInOfflineMode);
 
