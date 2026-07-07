@@ -72,7 +72,6 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
 
     public void Dispose()
     {
-        _backgroundTask?.Dispose();
         _canceler.Dispose();
     }
 }

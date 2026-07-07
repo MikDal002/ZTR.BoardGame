@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -47,9 +48,18 @@ public static class Program
 
             config.AddCommand<SetupCommand>("setup");
 
-            config.SetExceptionHandler((ex, _) =>
+            config.SetExceptionHandler((ex, resolver) =>
             {
-                Log.Error(ex, "An unhandled exception occurred during command execution.");
+                if (resolver?.Resolve(typeof(ILoggerFactory)) is ILoggerFactory loggerFactory)
+                {
+                    var logger = loggerFactory.CreateLogger("UNHANDLED EXCEPTION");
+                    logger.LogError(ex, "An unhandled exception occurred during command execution.");
+                }
+                else
+                {
+                    Log.Error(ex, "An unhandled exception occurred during command execution and there is no ILoggerFactory!.");
+                }
+
                 AnsiConsole.WriteException(ex);
                 return -99;
             });
