@@ -7,7 +7,6 @@ using Spectre.Console.Cli;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrBoardGame.Console.Commands.Base;
 using ZtrBoardGame.Console.Commands.Board.Online;
 using ZtrBoardGame.Console.DependencyInjection;
 using ZtrBoardGame.RaspberryPi;
@@ -21,9 +20,9 @@ public class BoardRunSettings : CommandSettings
     public bool NoServer { get; set; }
 }
 
-public class BoardRunCommand(TypeRegistrar typeRegistrar) : CancellableAsyncCommand<BoardRunSettings>
+public class BoardRunCommand(TypeRegistrar typeRegistrar) : AsyncCommand<BoardRunSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, BoardRunSettings runSettings, CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, BoardRunSettings runSettings, CancellationToken cancellationToken)
     {
         try
         {

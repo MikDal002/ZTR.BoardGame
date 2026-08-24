@@ -4,7 +4,7 @@
     <!-- Part of configuration is shared in server/Directory.Build.props file -->
     <OutputType>Exe</OutputType>
     <RootNamespace></RootNamespace>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <!--
       S3903 - Static analysis rule identifier indicating a specific warning.
     -->
@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="9.0.4" />
-    <PackageReference Include="SSH.NET" Version="2025.0.0" />
+    <PackageReference Include="Nuke.Common" Version="10.1.0" />
+    <PackageReference Include="SSH.NET" Version="2026.0.0" />
   </ItemGroup>
 
   <ItemGroup>

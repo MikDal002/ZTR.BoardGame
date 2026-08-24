@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrBoardGame.Console.Commands.Base;
 
 namespace ZtrBoardGame.Console;
 
@@ -15,9 +14,9 @@ public class VersionCommandSettings : CommandSettings
     public bool Update { get; set; }
 }
 
-public class UpdateCommand(IUpdateService updateService) : CancellableAsyncCommand<VersionCommandSettings>
+public class UpdateCommand(IUpdateService updateService) : AsyncCommand<VersionCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, VersionCommandSettings settings, CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, VersionCommandSettings settings, CancellationToken cancellationToken)
     {
         var currentVersion = updateService.GetCurrentVersion();
         if (currentVersion is not null)

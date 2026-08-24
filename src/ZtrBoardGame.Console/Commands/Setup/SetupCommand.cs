@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrBoardGame.Console.Commands.Base;
 
 namespace ZtrBoardGame.Console.Commands.Setup;
 
@@ -13,9 +12,9 @@ public class SetupSettings : CommandSettings
 {
 }
 
-public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator configuratorOrchestrator, ILogger<SetupCommand> logger) : CancellableAsyncCommand<SetupSettings>
+public class SetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator configuratorOrchestrator, ILogger<SetupCommand> logger) : AsyncCommand<SetupSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken)
     {
         var systemWhichNeedsConfiguration = await configuratorOrchestrator.GetSystemsWhichNeedsConfigurationAsync().ToListAsync(cancellationToken);
         var wasError = false;

@@ -9,7 +9,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrBoardGame.Console.Commands.Base;
 using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.DependencyInjection;
 
@@ -24,10 +23,9 @@ public class PcRunSettings : CommandSettings
     public bool NewUi { get; set; }
 }
 
-public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService, ILiveGameDashboard liveGameDashboard) : CancellableAsyncCommand<PcRunSettings>
+public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService, ILiveGameDashboard liveGameDashboard) : AsyncCommand<PcRunSettings>
 {
-
-    public override async Task<int> ExecuteAsync(CommandContext context, PcRunSettings runSettings, CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, PcRunSettings runSettings, CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
