@@ -1,17 +1,22 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.Extensions.Logging;
 
 namespace ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
-[ExcludeFromCodeCoverage(Justification = "Because it is direct hardware access, and there is nothing else to test")]
-class ConfigureI2C() : ISystemConfigurer
+#pragma warning disable S101 // This name is appropriate for physical interface I2C.
+class ConfigureI2C(ILogger<ConfigureI2C> logger) : ISystemConfigurer
+#pragma warning restore S101
 {
-    public string Name => "I2C Bus";
+    public string Name { get; } = "I2C";
 
     public async Task<bool> CanConfigureAsync()
         => await RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
-        => !await IsI2CEnabledAsync();
+    {
+        var i2cEnabled = await IsI2CEnabledAsync();
+        logger.LogInformation("System check -> I2C Enabled: {I2C}", i2cEnabled);
+        return !i2cEnabled;
+    }
 
     public async Task ConfigureAsync()
         => await EnableI2CAsync();
@@ -20,8 +25,7 @@ class ConfigureI2C() : ISystemConfigurer
     {
         try
         {
-            var output = await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled",
-                redirectStandardOutput: true);
+            var output = await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint get_i2c", "Cannot check if I2C bus is enabled");
             return output == "0";
         }
         catch
@@ -30,6 +34,9 @@ class ConfigureI2C() : ISystemConfigurer
         }
     }
 
-    private static async Task EnableI2CAsync()
-        => await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus", redirectStandardOutput: true);
+    private async Task EnableI2CAsync()
+    {
+        logger.LogInformation("Enabling I2C");
+        await RaspberryPiCommandHelper.RunCommandAsync("raspi-config", "nonint do_i2c 0", "Cannot enable I2C bus");
+    }
 }

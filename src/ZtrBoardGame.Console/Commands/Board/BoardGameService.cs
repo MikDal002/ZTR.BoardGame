@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using System;
 using System.Threading;
@@ -8,7 +9,7 @@ using ZtrBoardGame.RaspberryPi;
 
 namespace ZtrBoardGame.Console.Commands.Board;
 
-internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IAnsiConsole console, IGameStarter gameStarter, IResultSender resultSender, IServiceProvider serviceProvider) : IHostedService, IDisposable
+internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusStorage, IAnsiConsole console, IGameStarter gameStarter, IResultSender resultSender, IServiceProvider serviceProvider, ILogger<BoardGameService> logger) : IHostedService, IDisposable
 {
     Task? _backgroundTask;
     private readonly CancellationTokenSource _canceler = new();
@@ -72,7 +73,15 @@ internal sealed class BoardGameService(IBoardGameStatusStorage boardGameStatusSt
 
     public void Dispose()
     {
-        _backgroundTask?.Dispose();
-        _canceler.Dispose();
+        try
+        {
+            _backgroundTask?.Dispose();
+            _canceler?.Dispose();
+        }
+        catch (Exception e)
+        {
+            // We are swallowing the exception, because as it is singleton this might hide other issues. 
+            logger.LogError(e, "An error occurred while disposing.");
+        }
     }
 }

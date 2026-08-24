@@ -13,6 +13,7 @@ using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.Commands.Setup;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
+using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
 
@@ -33,7 +34,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         AddCommonServices(configuration);
 
         _services.AddRaspberryPiGameStrategy(configuration);
-        _services.AddRaspberryPiHardwareConfigurer();
+        _services.AddRaspberryPiHardwareConfigurers();
 
         _services.ConfigureHelloServiceHttpClient();
     }
@@ -53,6 +54,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
         _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
         _services.AddSingleton<ISystemConfiguratorOrchestrator, SystemConfiguratorOrchestrator>();
+        _services.AddSingleton<ISystemConfigurer, ConfigurePc>();
     }
 
     void ConfigureLogging(bool enableConsoleLogging, IConfigurationRoot configuration)

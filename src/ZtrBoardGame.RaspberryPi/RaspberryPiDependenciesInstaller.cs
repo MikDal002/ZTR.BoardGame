@@ -18,12 +18,13 @@ public static class RaspberryPiDependenciesInstaller
         return services;
     }
 
-    public static IServiceCollection AddRaspberryPiHardwareConfigurer(this IServiceCollection services)
+    public static IServiceCollection AddRaspberryPiHardwareConfigurers(this IServiceCollection services)
     {
-        // Must be singleton because hardware interceptor requires it.
-        services.AddSingleton<ISystemConfigurer, ConfigureSystemd>();
-        services.AddSingleton<ISystemConfigurer, ConfigureAvahi>();
-        services.AddSingleton<ISystemConfigurer, ConfigureI2C>();
+        services.AddTransient<ISystemConfigurer, ConfigureSystemd>();
+        services.AddTransient<ISystemConfigurer, ConfigureAvahi>();
+        services.AddTransient<ISystemConfigurer, ConfigureI2C>();
+        services.AddTransient<ISystemConfigurer, BootConfigSystemConfigurer>();
+        services.AddTransient<ISystemConfigurer, ConfigureUsbPowerSystem>();
         return services;
     }
 }

@@ -87,10 +87,10 @@ public class FromBoardToPcStepDefinitions : IDisposable
     public void ThenTheApplicationShouldRunWithoutStartupErrors()
     {
         _helloService = _serviceProvider.GetRequiredService<IHelloService>();
-        var _announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
+        var announcementTask = _helloService.AnnouncePresenceAsync(_cancellationTokenSource.Token);
 
-        _announcementTask.Wait(TimeSpan.FromSeconds(1));
-        _announcementTask.IsFaulted.Should().BeFalse();
+        announcementTask.Wait(TimeSpan.FromSeconds(1));
+        announcementTask.IsFaulted.Should().BeFalse();
     }
 
     [Then(@"the board should begin its announcement cycle to ""(.*)""")]

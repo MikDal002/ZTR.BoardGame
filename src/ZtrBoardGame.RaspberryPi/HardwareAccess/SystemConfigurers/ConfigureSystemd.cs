@@ -10,30 +10,47 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
 
     private const string ServiceName = "ztrboardgame.service";
     private const string ServicePath = $"/etc/systemd/system/{ServiceName}";
-    private const string RealAppPath = "/home/mikolaj/ZtrBoardGame.Console-linux-arm64-alpha.AppImage";
+
+    /// <summary>
+    /// Unfortunately Environment.ProcessPath and AppContext.BaseDirectory returns path to the /tmp/.mound.../
+    /// directory, which is changed on every run and is not the real path to the executable file. This is because of the
+    /// way AppImage works.
+    /// </summary>
+    private static string GetRealAppPath()
+    {
+
+        var appImagePath = Environment.GetEnvironmentVariable("APPIMAGE");
+        if (string.IsNullOrEmpty(appImagePath))
+        {
+            throw new SystemConfigurationException("Cannot get path of APPIMAGE file!");
+        }
+
+        return appImagePath;
+    }
 
     public Task<bool> CanConfigureAsync()
         => RaspberryPiCommandHelper.IsRaspberryPiRootAsync();
 
     public async Task<bool> IsConfigurationNeededAsync()
-        => !(await IsServiceConfigured());
+    {
+        var serviceConfigured = await IsServiceConfiguredAsync();
+        logger.LogInformation("System check -> AutoStart Configured: {Service}", serviceConfigured);
+        return !serviceConfigured;
+    }
 
     public async Task ConfigureAsync()
-        => await InstallSystemdService();
+        => await InstallSystemdServiceAsync();
 
-    private async Task<bool> IsServiceConfigured()
+    private async Task<bool> IsServiceConfiguredAsync()
     {
         if (!File.Exists(ServicePath))
         {
             return false;
         }
 
-        var currentExePath = RealAppPath;
-        if (string.IsNullOrEmpty(currentExePath))
-        {
-            return false;
-        }
+        var currentExePath = GetRealAppPath();
 
+        logger.LogInformation("Checking if service file points to the correct executable path: {Path}", currentExePath);
         try
         {
             var serviceContent = await File.ReadAllTextAsync(ServicePath);
@@ -49,29 +66,23 @@ class ConfigureSystemd(ILogger<ConfigureSystemd> logger) : ISystemConfigurer
             return false;
         }
 
-        try
-        {
-            var status = await RaspberryPiCommandHelper.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status", redirectStandardOutput: true);
-            return status.Trim() == "enabled";
-        }
-        catch
-        {
-            return false;
-        }
+        var status = await RaspberryPiCommandHelper.RunCommandAsync("systemctl", $"is-enabled {ServiceName}", "Check service status");
+        return status.Trim() == "enabled";
+
     }
 
-    private async Task InstallSystemdService()
+    private async Task InstallSystemdServiceAsync()
     {
-        logger.LogInformation("Installing systemd service for auto-start...");
+        logger.LogInformation("Installing systemd service for auto-start for executable file: `{Path} {Args}`", GetRealAppPath(), $"board run");
 
-        var appArguments = "board run";
+        var appArguments = $"board run";
 
-        if (!File.Exists(RealAppPath))
+        if (!File.Exists(GetRealAppPath()))
         {
-            throw new FileNotFoundException($"Executable file not found: {RealAppPath}");
+            throw new FileNotFoundException($"Executable file not found: {GetRealAppPath()}");
         }
 
-        var workingDirectory = Path.GetDirectoryName(RealAppPath);
+        var workingDirectory = Path.GetDirectoryName(GetRealAppPath());
 
         var serviceContent = $@"
 [Unit]
@@ -82,7 +93,7 @@ After=network.target multi-user.target
 Type=simple
 User=root
 WorkingDirectory={workingDirectory}
-ExecStart={RealAppPath} {appArguments}
+ExecStart={GetRealAppPath()} {appArguments}
 Restart=always
 RestartSec=5
 Environment=DOTNET_ROOT=/usr/share/dotnet
@@ -94,12 +105,12 @@ WantedBy=multi-user.target
 ";
 
         await File.WriteAllTextAsync(ServicePath, serviceContent);
-        logger.LogInformation("Service file created: {Path} {Args}", RealAppPath, appArguments);
 
         await RaspberryPiCommandHelper.RunCommandAsync("systemctl", "daemon-reload", "Cannot reload systemd daemon");
         await RaspberryPiCommandHelper.RunCommandAsync("systemctl", $"enable {ServiceName}", "Cannot enable service");
 
-        logger.LogInformation("Autostart configured successfully.");
+        logger.LogInformation("Autostart configured successfully for executable file: `{Path} {Args}`", GetRealAppPath(), appArguments);
 
     }
 }
+

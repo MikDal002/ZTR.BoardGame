@@ -56,14 +56,13 @@ internal static class RaspberryPiCommandHelper
         }
     }
 
-    public static async Task<string> RunCommandAsync(string command, string arguments, string errorMessage,
-        bool redirectStandardOutput = false)
+    public static async Task<string> RunCommandAsync(string command, string arguments, string errorMessage)
     {
         try
         {
             await APT_SYNC_CONTEXT.WaitAsync();
 
-            return await RunCommandInternalAsync(command, arguments, errorMessage, redirectStandardOutput);
+            return await RunCommandInternalAsync(command, arguments, errorMessage);
         }
         finally
         {
@@ -92,8 +91,7 @@ internal static class RaspberryPiCommandHelper
         }
     }
 
-    static async Task<string> RunCommandInternalAsync(string command, string arguments, string errorMessage,
-        bool redirectStandardOutput = false)
+    static async Task<string> RunCommandInternalAsync(string command, string arguments, string errorMessage)
     {
         var processStartInfo = new ProcessStartInfo()
         {
@@ -101,7 +99,7 @@ internal static class RaspberryPiCommandHelper
             Arguments = arguments,
             UseShellExecute = false,
             CreateNoWindow = true,
-            RedirectStandardOutput = redirectStandardOutput,
+            RedirectStandardOutput = true,
             RedirectStandardError = true
         };
 
@@ -112,12 +110,7 @@ internal static class RaspberryPiCommandHelper
             throw new InvalidOperationException("Cannot start new process because of unknown error");
         }
 
-        var output = string.Empty;
-
-        if (redirectStandardOutput)
-        {
-            output = await process.StandardOutput.ReadToEndAsync();
-        }
+        var output = await process.StandardOutput.ReadToEndAsync();
 
         await process.WaitForExitAsync();
 
