@@ -12,10 +12,8 @@ public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
 {
     public string Name { get; } = "Nazwa komputera";
 
-    public static bool CanConfigure()
-    {
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-    }
+    public Task<bool> CanConfigureAsync()
+        => Task.FromResult(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
     public Task<bool> IsConfigurationNeededAsync()
     {
@@ -56,10 +54,5 @@ public class ConfigurePc(IAnsiConsole console) : ISystemConfigurer
         {
             throw new InvalidOperationException($"Wystąpił błąd podczas próby zmiany nazwy komputera: {ex.Message}", ex);
         }
-    }
-
-    public Task<bool> CanConfigureAsync()
-    {
-        throw new NotImplementedException();
     }
 }
