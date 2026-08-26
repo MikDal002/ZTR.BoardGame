@@ -9,8 +9,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
-using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.Server.Commons;
+using ZtrBoardGame.Server.Commons.Extensions;
 
 namespace ZtrBoardGame.Console.Commands.Board.Online;
 

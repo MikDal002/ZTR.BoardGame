@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using System;
-using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.Server.Commons;
+using ZtrBoardGame.Server.Commons.Extensions;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 

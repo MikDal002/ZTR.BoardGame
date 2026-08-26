@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace ZtrBoardGame.Console.Commands.PC;
+namespace ZtrBoardGame.Server.Commons;
 
 public interface IBoardStorage
 {

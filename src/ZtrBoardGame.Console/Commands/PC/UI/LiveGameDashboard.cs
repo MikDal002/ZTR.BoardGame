@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ZtrBoardGame.Server.Commons;
 
 namespace ZtrBoardGame.Console.Commands.PC.UI;
 
@@ -197,7 +198,7 @@ class LiveGameDashboard(IGameService gameService, IBoardStorage boardStorage) : 
             });
     }
 
-    private static IRenderable CreateBoardsLayout(System.Collections.Generic.IEnumerable<Board> boards)
+    private static IRenderable CreateBoardsLayout(System.Collections.Generic.IEnumerable<Server.Commons.Board> boards)
     {
         var rows = boards
             .Select(d => CreateBoardPanel(d))
@@ -208,7 +209,7 @@ class LiveGameDashboard(IGameService gameService, IBoardStorage boardStorage) : 
         return splitRows;
     }
 
-    private static Renderable CreateBoardPanel(Board board)
+    private static Renderable CreateBoardPanel(Server.Commons.Board board)
     {
         board.GetHealthStatus(out var lastHeathCheck, out var duration);
         var lastSeen = lastHeathCheck != null ? (DateTimeOffset.UtcNow - lastHeathCheck!).Value.TotalSeconds : 0;
@@ -248,5 +249,6 @@ class LiveGameDashboard(IGameService gameService, IBoardStorage boardStorage) : 
             .Padding(2, 1);
 
         return panel;
+
     }
 }
