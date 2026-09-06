@@ -6,7 +6,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.Server.Commons;
+using ZtrBoardGame.Server.Commons.Extensions;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 

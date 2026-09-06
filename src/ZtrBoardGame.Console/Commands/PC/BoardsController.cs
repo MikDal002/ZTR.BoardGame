@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using System;
-using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.Server.Commons;
+using ZtrBoardGame.Server.Commons.Extensions;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 
@@ -41,7 +42,7 @@ public class BoardsController(IBoardStorage boardStorage, IGameService gameServi
         logger.LogInformation("Received hello from board");
         console.MarkupLine($"Received hello from board {boardIpAddress}");
 
-        boardStorage.Add(new(boardIpAddress));
+        boardStorage.TryAdd(new(boardIpAddress));
         return Ok();
     }
 

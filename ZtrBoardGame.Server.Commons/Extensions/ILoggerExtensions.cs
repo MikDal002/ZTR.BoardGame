@@ -1,9 +1,6 @@
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace ZtrBoardGame.Console.Infrastructure;
+namespace ZtrBoardGame.Server.Commons.Extensions;
 
 public static class ILoggerExtensions
 {

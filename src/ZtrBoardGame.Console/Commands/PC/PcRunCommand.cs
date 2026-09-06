@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,11 +7,13 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Console.Commands.PC.UI;
 using ZtrBoardGame.Console.DependencyInjection;
+using ZtrBoardGame.Server.Commons;
 
 namespace ZtrBoardGame.Console.Commands.PC;
 
@@ -23,7 +26,7 @@ public class PcRunSettings : CommandSettings
     public bool NewUi { get; set; }
 }
 
-public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService, ILiveGameDashboard liveGameDashboard) : AsyncCommand<PcRunSettings>
+public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBoardStorage boardStorage, IGameService gameService, ILiveGameDashboard liveGameDashboard, IAvaloniaGameDashboard avaloniaGameDashboard) : AsyncCommand<PcRunSettings>
 {
     protected override async Task<int> ExecuteAsync(CommandContext context, PcRunSettings runSettings, CancellationToken cancellationToken)
     {
@@ -58,50 +61,28 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
 
     async Task StandardStrategy(CancellationToken cancellationToken, PcRunSettings runSettings)
     {
-        if (runSettings.NewUi)
+
+        try
         {
-            await NewPrompting(cancellationToken);
+            if (runSettings.NewUi)
+            {
+                await avaloniaGameDashboard.StartUI(cancellationToken);
+            }
+            else
+            {
+                await NewPrompting(cancellationToken);
+            }
         }
-        else
+        catch (TaskCanceledException)
         {
-            await OldPrompting(cancellationToken);
+            // Łapiemy wyjątek rzucany przez tcs.TrySetCanceled(),
+            // żeby serwer w tle mógł się czysto zamknąć
         }
     }
 
     async Task NewPrompting(CancellationToken cancellationToken)
     {
         await liveGameDashboard.NewPrompting(cancellationToken);
-    }
-
-    async Task OldPrompting(CancellationToken cancellationToken)
-    {
-        bool confirmAsync;
-        do
-        {
-            confirmAsync = await console.ConfirmAsync("Wciśnij enter aby zacząć grę");
-            if (!confirmAsync)
-            {
-                continue;
-            }
-
-            var boards = boardStorage.GetAllAddresses().ToList();
-            if (boards.Count == 0)
-            {
-                console.MarkupLine("[red]Brak dostępnych plansz![/]");
-                continue;
-            }
-
-            console.MarkupLine($"[green]Rozpoczynanie gry dla [/] {boardStorage.Count} graczy");
-            await gameService.StartSessionAsync(cancellationToken);
-            do
-            {
-                AnsiConsole.MarkupLine($"[grey]Oczekiwanie na wyniki od graczy[/]");
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-            } while (!gameService.AreAllResultsReceived());
-
-            gameService.ShowLeaderBoard();
-
-        } while (!cancellationToken.IsCancellationRequested);
     }
 
     async Task NonInteractiveStrategy(CancellationToken cancellationToken)
@@ -131,7 +112,30 @@ public class PcRunCommand(TypeRegistrar typeRegistrar, IAnsiConsole console, IBo
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
         } while (!gameService.AreAllResultsReceived() && !cancellationToken.IsCancellationRequested);
 
-        gameService.ShowLeaderBoard();
+        ShowLeaderBoard(gameService.Results);
+    }
+
+    private static void ShowLeaderBoard(IReadOnlyDictionary<Server.Commons.Board, GameResult> results)
+    {
+        var sorted = results.OrderBy(kv => kv.Value.Duration).ToList();
+
+        var table = new Table()
+            .RoundedBorder()
+            .AddColumn("Miejsce")
+            .AddColumn("Board")
+            .AddColumn("Czas (ms)");
+
+        var place = 1;
+        foreach (var kv in sorted)
+        {
+            var board = kv.Key;
+            var result = kv.Value;
+            table.AddRow(place.ToString(), board.Address.ToString(), result.Duration.TotalMilliseconds.ToString());
+            place++;
+        }
+
+        AnsiConsole.Write(new FigletText("Wyniki"));
+        AnsiConsole.Write(table);
     }
 
     private async Task<int> RunWebServer(CommandContext context, CancellationToken cancellationToken)
