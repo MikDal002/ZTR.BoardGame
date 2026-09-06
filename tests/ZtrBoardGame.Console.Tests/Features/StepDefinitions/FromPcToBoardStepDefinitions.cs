@@ -12,6 +12,7 @@ using ZtrBoardGame.Console.Commands.PC;
 using ZtrBoardGame.Console.Tests.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
+using ZtrBoardGame.Server.Commons;
 
 namespace ZtrBoardGame.Console.Tests.Features.StepDefinitions;
 
@@ -124,7 +125,7 @@ public class FromPcToBoardStepDefinitions
     [When(@"the PC receives a ""hello"" request from Board")]
     public void WhenThePCReceivesAHelloRequestFromBoard()
     {
-        _boardStorage.Add(new Board(new Uri("http://127.0.0.1:8080")));
+        _boardStorage.TryAdd(new Board(new Uri("http://127.0.0.1:8080")));
     }
 
     [When(@"the PC attempts to send a ""hello"" request back")]

@@ -42,7 +42,7 @@ public class BoardsController(IBoardStorage boardStorage, IGameService gameServi
         logger.LogInformation("Received hello from board");
         console.MarkupLine($"Received hello from board {boardIpAddress}");
 
-        boardStorage.Add(new(boardIpAddress));
+        boardStorage.TryAdd(new(boardIpAddress));
         return Ok();
     }
 

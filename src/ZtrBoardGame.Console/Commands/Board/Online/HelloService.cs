@@ -4,14 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Spectre.Console;
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ZtrBoardGame.Configuration.Shared;
 using ZtrBoardGame.RaspberryPi.HardwareAccess;
-using ZtrBoardGame.Server.Commons;
-using ZtrBoardGame.Server.Commons.Extensions;
 
 namespace ZtrBoardGame.Console.Commands.Board.Online;
 
@@ -23,7 +20,6 @@ public interface IHelloService
 public sealed class HelloService(IHttpClientFactory httpClientFactory, IAnsiConsole console, IOptions<BoardNetworkSettings> serverAddressProvider, IBoardGameStatusStorage boardGameStatusStorage, IServiceProvider serviceProvider, ILogger<HelloService> logger)
     : IHelloService, IHostedService, IDisposable
 {
-    private static readonly ResilienceSettings ResilienceSettings = new(2, TimeSpan.FromSeconds(1), "Announce Presence", "the server");
     Task? _backgroundTask;
     private readonly CancellationTokenSource _canceler = new();
 
@@ -60,34 +56,28 @@ public sealed class HelloService(IHttpClientFactory httpClientFactory, IAnsiCons
     {
         try
         {
-            var httpClient = httpClientFactory.CreateClient(BoardHttpClientConfigure.ToPcClientName);
 
-            using var _ =
-                logger.BeginScopeWith(("PcServerAddress", httpClient.BaseAddress?.ToString() ?? "<NULL>"));
-
-            var isConnectionSuccessful = await ResilienceHelper.InvokeWithRetryAsync(async () =>
+            do
             {
-                var urlEncode = WebUtility.UrlEncode(serverAddressProvider.Value.BoardAddress);
-                var response = await httpClient.PostAsync($"/api/boards?responseAddress={urlEncode}", null,
-                    cancellationToken);
-                response.EnsureSuccessStatusCode();
-                console.MarkupLine($"[green]Connected to the server[/]");
-                logger.LogInformation("Successfully announced presence to PC server");
-            }, ResilienceSettings, console, logger, cancellationToken, httpClient.BaseAddress);
-
-            if (!isConnectionSuccessful)
-            {
-                await AnnounceNotConnected(physicalNotificator, cancellationToken);
-                return false;
-            }
+                try
+                {
+                    await AnnounceNotConnected(physicalNotificator, cancellationToken);
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    logger.LogError(e, "Cannot connect to pc, keep trying");
+                    await AnnounceNotConnected(physicalNotificator, cancellationToken);
+                }
+            } while (true);
 
             await AnnounceConnected(physicalNotificator, cancellationToken);
             return true;
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Cannot connect to pc, keep trying");
-            await AnnounceNotConnected(physicalNotificator, cancellationToken);
+
         }
 
         return false;
