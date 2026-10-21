@@ -8,7 +8,9 @@ using Nuke.Common.Tools.Git;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
 using Serilog;
+using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 public partial class Build : NukeBuild
 {
@@ -53,6 +55,9 @@ public partial class Build : NukeBuild
     AbsolutePath PackagesDirectory => RootDirectory / "packages";
     AbsolutePath TestResultDirectory => RootDirectory / "testResults";
 
+    static string SanitizeGitTag(string text)
+        => Regex.Replace(text, @"[^0-9A-Za-z\.-]", string.Empty, RegexOptions.None, TimeSpan.FromSeconds(10));
+
     Target Clean => _ => _
         .Before(Restore)
         .DependentFor(Restore)
@@ -88,22 +93,30 @@ public partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Log.Information($"Compiling {GitVersion.SemVer} version");
+            Log.Information($"Compiling {GitVersion?.SemVer ?? "0.0.0"} version");
 
-            DotNetTasks.DotNetBuild(s => s
-                .SetProjectFile(ProjectToPublish)
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetRuntime(Runtime)
-                .SetTreatWarningsAsErrors(true)
-                .EnableNoRestore());
+            DotNetTasks.DotNetBuild(s =>
+            {
+                s = s.SetProjectFile(ProjectToPublish)
+                    .SetConfiguration(Configuration)
+                    .SetRuntime(Runtime)
+                    .SetTreatWarningsAsErrors(true)
+                    .EnableNoRestore();
+
+                if (GitVersion != null)
+                {
+                    s = s.SetAssemblyVersion(GitVersion.AssemblySemVer)
+                        .SetFileVersion(GitVersion.AssemblySemFileVer)
+                        .SetInformationalVersion(GitVersion.InformationalVersion);
+                }
+
+                return s;
+            });
         });
 
     Target Publish => _ => _
         .DependsOn(Compile)
-        .DependsOn(Tests)
+        .DependsOn(UnitTests)
         .Executes(() =>
         {
             PublishDirectory.CreateOrCleanDirectory();
@@ -111,37 +124,34 @@ public partial class Build : NukeBuild
             Log.Information("Publishing {projectToPublish} project to {filePath} directory.", ProjectToPublish,
                 PublishDirectory);
 
-            DotNetTasks.DotNetPublish(s => s.SetProject(ProjectToPublish)
-                .SetConfiguration(Configuration)
-                .SetOutput(PublishDirectory)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetSelfContained(true)
-                .SetPublishTrimmed(true)
-                .SetRuntime(Runtime)
-                .SetNoBuild(true)
-                );
-        });
+            DotNetTasks.DotNetPublish(s =>
+            {
+                s = s.SetProject(ProjectToPublish)
+                    .SetConfiguration(Configuration)
+                    .SetOutput(PublishDirectory)
+                    .SetSelfContained(true)
+                    .SetPublishTrimmed(true)
+                    .SetRuntime(Runtime)
+                    .SetNoBuild(true);
 
-    Target Tests => _ => _
-       .DependsOn(Compile)
-       .TriggeredBy(Compile)
-       .Executes(() =>
-       {
-           TestResultDirectory.CreateOrCleanDirectory();
-           DotNetTasks.DotNetTest(s => s.SetConfiguration(Configuration)
-               .SetProcessEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en-US")
-               .SetRuntime(Runtime)
-               .SetProjectFile(Solution));
-       });
+                if (GitVersion != null)
+                {
+                    s = s.SetAssemblyVersion(GitVersion.AssemblySemVer)
+                        .SetFileVersion(GitVersion.AssemblySemFileVer)
+                        .SetInformationalVersion(GitVersion.InformationalVersion);
+                }
+
+                return s;
+            });
+        });
 
     Target CreateVersionLabel => _ => _
         .TriggeredBy(Publish)
-        .OnlyWhenStatic(() => GitRepository.IsOnMainOrMasterBranch() || GitRepository.IsOnDevelopBranch())
+        .Requires(() => GitVersion)
         .Executes(() =>
         {
-            Log.Information($"Pushing new tag about the version {GitVersion.FullSemVer}");
+            var sanitizedVersion = SanitizeGitTag(GitVersion.FullSemVer);
+            Log.Information("Pushing new tag about the version {SxanitizedVersion}", sanitizedVersion);
 
             if (!IsLocalBuild)
             {
@@ -149,16 +159,16 @@ public partial class Build : NukeBuild
                 GitTasks.Git($"config user.name \"Our Company Build\"");
             }
 
-            GitTasks.Git($"tag -a {GitVersion.FullSemVer} -m \"Setting git tag on commit to '{GitVersion.FullSemVer}'\"");
+            GitTasks.Git($"tag -a {sanitizedVersion} -m \"Setting git tag on commit to '{sanitizedVersion}'\"");
 
             try
             {
-                GitTasks.Git($"push origin refs/tags/{GitVersion.FullSemVer}");
-                Log.Information($"Successfully pushed tag {GitVersion.FullSemVer}.");
+                GitTasks.Git($"push origin refs/tags/{sanitizedVersion}");
+                Log.Information("Successfully pushed tag {SanitizedVersion}.", sanitizedVersion);
             }
             catch (ProcessException ex) when (ex.Message.Contains("already exists") || ex.Message.Contains("Updates were rejected because the tag already exists"))
             {
-                Log.Warning($"Tag {GitVersion.FullSemVer} already exists on remote. Skipping push. Details: {ex.Message}");
+                Log.Warning(ex, $"Tag {sanitizedVersion} already exists on remote. Skipping push. Details: {ex.Message}");
             }
         });
 

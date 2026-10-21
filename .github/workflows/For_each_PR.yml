@@ -22,13 +22,15 @@ on:
       - develop
       - main
       - master
+      - 'feature/*'
+      - release
 
 jobs:
   windows-latest:
     name: windows-latest
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: 'Cache: .nuke/temp, ~/.nuget/packages'
@@ -38,15 +40,15 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests'
-        run: ./build.cmd Tests
+      - name: 'Run: UnitTests'
+        run: ./build.cmd UnitTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ubuntu-latest:
     name: ubuntu-latest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: 'Cache: .nuke/temp, ~/.nuget/packages'
@@ -56,7 +58,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests'
-        run: ./build.cmd Tests
+      - name: 'Run: UnitTests'
+        run: ./build.cmd UnitTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

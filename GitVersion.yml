@@ -27,18 +27,18 @@ branches:
     is-release-branch: false
 
   hotfix:
-    regex: hotfixes?[/-]
+    regex: ^hotfix?[/-]
     label: beta
     increment: Patch
-    source-branches: [master, main]
+    source-branches: [master, main, master]
     track-merge-target: false
     is-release-branch: true
 
-# Optional: Release branches (if you use them as part of GitFlow)
-#  release:
-#    regex: releases?[/-]
-#    label: rc # Release Candidate (e.g., 1.0.0-rc.1)
-#    increment: None # Version is usually set when branching from develop
-#    prevent-increment-of-merged-branch-version: true
-#    track-merge-target: false
-#    is-release-branch: true
+  release:
+    regex: ^release
+    label: rc # Release Candidate (e.g., 1.0.0-rc.1)
+    increment: None # Version is usually set when branching from develop
+    track-merge-target: false
+    is-release-branch: true
+    source-branches: [develop, main, master]
+    

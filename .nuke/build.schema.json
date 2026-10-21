@@ -29,14 +29,17 @@
         "Compile",
         "ConfigureAppSettings",
         "CreateVersionLabel",
+        "DockerComposeDown",
+        "DockerComposeUp",
         "DownloadGithubRelease",
         "DownloadServerToLocal",
+        "E2ETests",
         "Format",
         "PackWithVelopack",
         "Publish",
         "PublishToGitHubWithVelopack",
         "Restore",
-        "Tests",
+        "UnitTests",
         "UploadLocalToServer"
       ]
     },

@@ -22,13 +22,14 @@ on:
       - master
       - main
       - develop
+      - release
 
 jobs:
   windows-latest:
     name: windows-latest
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: 'Cache: .nuke/temp, ~/.nuget/packages'
@@ -38,15 +39,15 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests, PublishToGitHubWithVelopack'
-        run: ./build.cmd Tests PublishToGitHubWithVelopack
+      - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
+        run: ./build.cmd PublishToGitHubWithVelopack --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ubuntu-latest:
     name: ubuntu-latest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: 'Cache: .nuke/temp, ~/.nuget/packages'
@@ -56,7 +57,7 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: 'Run: Tests, PublishToGitHubWithVelopack'
-        run: ./build.cmd Tests PublishToGitHubWithVelopack
+      - name: 'Run: UnitTests, PublishToGitHubWithVelopack'
+        run: ./build.cmd PublishToGitHubWithVelopack --SystemArchitecture arm64 --OperationSystem linux  --skip E2ETests UnitTests Format
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

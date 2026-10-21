@@ -1,0 +1,69 @@
+<Project>
+    <PropertyGroup>
+        <!-- Path to the repository root; MSBuildThisFileDirectory already has a trailing slash -->
+        <HuskyRoot Condition="'$(HuskyRoot)' == ''">$(MSBuildThisFileDirectory)</HuskyRoot>
+    </PropertyGroup>
+
+    <!--
+        Atomically acquires a file-based lock by creating the lock file with FileMode.CreateNew.
+        Sets Acquired=true if this node is the owner, false if another node got there first.
+    -->
+    <UsingTask TaskName="TryAcquireFileLock" TaskFactory="RoslynCodeTaskFactory"
+               AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <LockFile ParameterType="System.String"  Required="true" />
+            <Acquired ParameterType="System.Boolean" Output="true" />
+        </ParameterGroup>
+        <Task>
+            <Code Type="Fragment" Language="cs"><![CDATA[
+                try
+                {
+                    File.Open(LockFile, FileMode.CreateNew).Dispose();
+                    Acquired = true;
+                }
+                catch (IOException)
+                {
+                    Acquired = false;
+                }
+            ]]></Code>
+        </Task>
+    </UsingTask>
+
+    <!--
+        Automatically installs Husky for every contributor before dotnet restore.
+        Set the HUSKY environment variable to 0 to skip installation manually.
+        Incremental-build support: only re-runs when .config/dotnet-tools.json changes or after dotnet clean.
+        A file-based lock ensures dotnet tool restore runs exactly once during parallel builds.
+        See: https://alirezanet.github.io/Husky.Net/guide/automate.html#manual-attach
+    -->
+    <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != '0'"
+            Inputs="$(HuskyRoot).config/dotnet-tools.json"
+            Outputs="$(HuskyRoot).husky/_/install.stamp">
+
+        <MakeDir Directories="$(HuskyRoot).husky/_" />
+
+        <TryAcquireFileLock LockFile="$(HuskyRoot).husky/_/install.lock">
+            <Output TaskParameter="Acquired" PropertyName="HuskyLockAcquired" />
+        </TryAcquireFileLock>
+
+        <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High"
+              WorkingDirectory="$(HuskyRoot)"
+              Condition="'$(HuskyLockAcquired)' == 'true'" />
+        <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High"
+              WorkingDirectory="$(HuskyRoot)"
+              Condition="'$(HuskyLockAcquired)' == 'true'" />
+        <Touch Files="$(HuskyRoot).husky/_/install.stamp" AlwaysCreate="true"
+               Condition="'$(HuskyLockAcquired)' == 'true'" />
+
+        <ItemGroup>
+            <FileWrites Include="$(HuskyRoot).husky/_/install.stamp" />
+        </ItemGroup>
+
+        <OnError ExecuteTargets="HuskyCleanupLock" />
+    </Target>
+
+    <Target Name="HuskyCleanupLock" AfterTargets="Build"
+            Condition="'$(HUSKY)' != '0'">
+        <Delete Files="$(HuskyRoot).husky/_/install.lock" />
+    </Target>
+</Project>

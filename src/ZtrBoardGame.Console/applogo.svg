@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- Shadow for depth -->
+    <filter id="drop-shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="grad-white" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#D5DBDB" />
+    </linearGradient>
+
+    <linearGradient id="grad-green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ECC71" />
+      <stop offset="100%" stop-color="#27AE60" />
+    </linearGradient>
+
+    <linearGradient id="grad-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E74C3C" />
+      <stop offset="100%" stop-color="#C0392B" />
+    </linearGradient>
+
+    <style>
+      .base-sq { stroke: #2C3E50; stroke-width: 4; rx: 14; ry: 14; filter: url(#drop-shadow); }
+      .white-sq { fill: url(#grad-white); }
+      .green-sq { fill: url(#grad-green); }
+      .red-sq   { fill: url(#grad-red); }
+    </style>
+  </defs>
+
+  <!-- Background base representing the physical board -->
+  <rect x="5" y="5" width="390" height="390" fill="#1E1E1E" stroke="#2C3E50" stroke-width="4" rx="20" ry="20" filter="url(#drop-shadow)" />
+
+  <!-- Row 1 -->
+  <rect x="25" y="25" width="80" height="80" class="base-sq white-sq" />
+  <rect x="115" y="25" width="80" height="80" class="base-sq white-sq" />
+  <rect x="205" y="25" width="80" height="80" class="base-sq green-sq" />
+  <rect x="295" y="25" width="80" height="80" class="base-sq white-sq" />
+
+  <!-- Row 2 -->
+  <rect x="25" y="115" width="80" height="80" class="base-sq white-sq" />
+  <rect x="115" y="115" width="80" height="80" class="base-sq white-sq" />
+  <rect x="205" y="115" width="80" height="80" class="base-sq white-sq" />
+  <rect x="295" y="115" width="80" height="80" class="base-sq red-sq" />
+
+  <!-- Row 3 -->
+  <rect x="25" y="205" width="80" height="80" class="base-sq green-sq" />
+  <rect x="115" y="205" width="80" height="80" class="base-sq white-sq" />
+  <rect x="205" y="205" width="80" height="80" class="base-sq white-sq" />
+  <rect x="295" y="205" width="80" height="80" class="base-sq white-sq" />
+
+  <!-- Row 4 -->
+  <rect x="25" y="295" width="80" height="80" class="base-sq white-sq" />
+  <rect x="115" y="295" width="80" height="80" class="base-sq green-sq" />
+  <rect x="205" y="295" width="80" height="80" class="base-sq white-sq" />
+  <rect x="295" y="295" width="80" height="80" class="base-sq white-sq" />
+
+</svg>

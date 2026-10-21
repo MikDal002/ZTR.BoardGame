@@ -1,3 +1,5 @@
 * text=auto eol=crlf
 *.sh text eol=lf
 *.cmd text eol=lf
+.husky/* text eol=lf
+.husky/_/* text eol=lf
