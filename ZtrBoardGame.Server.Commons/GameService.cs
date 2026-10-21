@@ -1,24 +1,18 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using ZtrBoardGame.Console.Commands.Board.Online;
-using ZtrBoardGame.Console.Infrastructure;
+using ZtrBoardGame.Server.Commons.Extensions;
+using ZtrBoardGame.Server.Commons.Online;
 
-namespace ZtrBoardGame.Console.Commands.PC;
-
-public record GameResult(TimeSpan Duration);
+namespace ZtrBoardGame.Server.Commons;
 
 public interface IGameService
 {
+    public IReadOnlyDictionary<Board, GameResult> Results { get; }
+
     Task StartSessionAsync(CancellationToken cancellationToken);
     void RecordResults(Board board);
-    void ShowLeaderBoard();
     bool AreAllResultsReceived();
     Task AwaitResultsFromBoards(CancellationToken cancellationToken);
 }
@@ -26,6 +20,8 @@ public interface IGameService
 public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttpClientFactory httpClientFactory, ILogger<GameService> logger) : IGameService
 {
     readonly ConcurrentDictionary<Board, GameResult> _results = new();
+    public IReadOnlyDictionary<Board, GameResult> Results => _results;
+
     private static readonly ResilienceSettings ResilienceSettings = new(10, TimeSpan.FromSeconds(1), "Check Presence", "the board");
 
     public void RecordResults(Board board)
@@ -35,31 +31,14 @@ public class GameService(IBoardStorage boardStorage, IAnsiConsole console, IHttp
 
     public async Task StartSessionAsync(CancellationToken cancellationToken)
     {
-        _results.Clear();
-        await RequestStartOnBoards(cancellationToken);
-    }
-
-    public void ShowLeaderBoard()
-    {
-        var sorted = _results.OrderBy(kv => kv.Value.Duration).ToList();
-
-        var table = new Table()
-            .RoundedBorder()
-            .AddColumn("Miejsce")
-            .AddColumn("Board")
-            .AddColumn("Czas (ms)");
-
-        var place = 1;
-        foreach (var kv in sorted)
+        foreach (var keyValuePair in _results)
         {
-            var board = kv.Key;
-            var result = kv.Value;
-            table.AddRow(place.ToString(), board.Address.ToString(), result.Duration.TotalMilliseconds.ToString());
-            place++;
+            keyValuePair.Key.Reset();
         }
 
-        AnsiConsole.Write(new FigletText("Wyniki"));
-        AnsiConsole.Write(table);
+        _results.Clear();
+
+        await RequestStartOnBoards(cancellationToken);
     }
 
     public async Task AwaitResultsFromBoards(CancellationToken cancellationToken)

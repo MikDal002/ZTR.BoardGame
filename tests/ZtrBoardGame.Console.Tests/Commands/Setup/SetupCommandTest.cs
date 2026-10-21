@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Spectre.Console;
+using Spectre.Console.Cli;
 using Spectre.Console.Testing;
 using ZtrBoardGame.Console.Commands.Setup;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
@@ -10,8 +13,21 @@ namespace ZtrBoardGame.Console.Tests.Commands.Setup;
 public class SetupCommandTest
 {
     private TestConsole _console;
-    private SetupCommand _setupCommand;
+    private TestableSetupCommand _setupCommand;
     private List<ISystemConfigurer> _configurers;
+
+    private class TestableSetupCommand : SetupCommand
+    {
+        public TestableSetupCommand(IAnsiConsole console, ISystemConfiguratorOrchestrator orchestrator, ILogger<SetupCommand> logger)
+            : base(console, orchestrator, logger)
+        {
+        }
+
+        public Task<int> RunExecuteAsync(CommandContext context, SetupSettings settings, CancellationToken cancellationToken = default)
+        {
+            return base.ExecuteAsync(context, settings, cancellationToken);
+        }
+    }
 
     [SetUp]
     public void SetUp()
@@ -19,7 +35,7 @@ public class SetupCommandTest
         _console = new TestConsole();
         _configurers = new List<ISystemConfigurer>();
         var orchestrator = new SystemConfiguratorOrchestrator(_configurers, NullLogger<SystemConfiguratorOrchestrator>.Instance);
-        _setupCommand = new SetupCommand(_console, orchestrator, NullLogger<SetupCommand>.Instance);
+        _setupCommand = new TestableSetupCommand(_console, orchestrator, NullLogger<SetupCommand>.Instance);
     }
 
     [TearDown]
@@ -41,7 +57,7 @@ public class SetupCommandTest
     public async Task SetupCommand_WithEmptyListOfConfigurers_ReturnsEverythingIsDone()
     {
         // Act
-        await _setupCommand.ExecuteAsync(null, null);
+        await _setupCommand.RunExecuteAsync(null, null);
 
         // Assert
         _console.Output.Should().Contain("Everything is already configured");
@@ -54,9 +70,9 @@ public class SetupCommandTest
         _configurers.Add(new FakeSystemConfigurer());
 
         // Act
-        await _setupCommand.ExecuteAsync(null, null);
+        await _setupCommand.RunExecuteAsync(null, null);
 
-        // Arrange
+        // Assert
         _console.Output.Should().Contain("configured successfully");
     }
 }

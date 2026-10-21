@@ -1,11 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace ZtrBoardGame.Console.Infrastructure;
+namespace ZtrBoardGame.Server.Commons;
 
 public record ResilienceSettings(int MaxRetries, TimeSpan Delay, string OperationName, string TargetName);
 

@@ -2,12 +2,10 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using ZtrBoardGame.Server.Commons.Online;
 
 namespace ZtrBoardGame.Console.Commands.Board.Online;
-
-public record GameStartRequest(IReadOnlyCollection<int> Fields);
 
 public class GameStartRequestValidator : AbstractValidator<GameStartRequest>
 {

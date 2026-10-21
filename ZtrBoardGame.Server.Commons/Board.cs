@@ -1,6 +1,6 @@
-using System;
+namespace ZtrBoardGame.Server.Commons;
 
-namespace ZtrBoardGame.Console.Commands.PC;
+public record GameResult(TimeSpan Duration);
 
 public class Board(
     Uri address,
@@ -11,7 +11,7 @@ public class Board(
 {
     public Uri Address { get; } = address;
     public GameResult? GameResult { get; private set; } = gameResult;
-
+    public DateTimeOffset? ResultArrivedOn { get; private set; } = ResultArrivedOn;
     public void GetHealthStatus(out DateTimeOffset? lastHeathCheck, out TimeSpan? duration)
     {
         lastHeathCheck = LastHealthCheck;

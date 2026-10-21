@@ -1,17 +1,15 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace ZtrBoardGame.Console.Commands.PC;
+namespace ZtrBoardGame.Server.Commons;
 
 public interface IBoardStorage
 {
-    void Add(Board board);
+    void TryAdd(Board board);
     int Count { get; }
     IEnumerable<Uri> GetAllAddresses();
     Board Get(Uri uri);
     IEnumerable<Board> GetAll();
+    bool TryGet(Uri uri, out Board board);
 }
 
 // 
@@ -21,7 +19,7 @@ public class BoardStorage : IBoardStorage
 {
     readonly ConcurrentDictionary<Uri, Board> _connectedBoards = [];
 
-    public void Add(Board board)
+    public void TryAdd(Board board)
         => _connectedBoards.TryAdd(board.Address, board);
 
     public int Count
@@ -32,6 +30,9 @@ public class BoardStorage : IBoardStorage
 
     public Board Get(Uri uri)
         => _connectedBoards.TryGetValue(uri, out var board) ? board : throw new KeyNotFoundException($"Board with address {uri} not found.");
+
+    public bool TryGet(Uri uri, out Board board)
+        => _connectedBoards.TryGetValue(uri, out board);
 
     public IEnumerable<Board> GetAll()
         => _connectedBoards.Values.ToList();

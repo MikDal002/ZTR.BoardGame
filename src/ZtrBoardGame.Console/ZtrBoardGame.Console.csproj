@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ZtrBoardGame.Configuration.Shared\ZtrBoardGame.Configuration.Shared.csproj" />
     <ProjectReference Include="..\ZtrBoardGame.RaspberryPi\ZtrBoardGame.RaspberryPi.csproj" />
+    <ProjectReference Include="..\ZtrBoardGame.Server.Desktop\ZtrBoardGame.Server.Desktop.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -63,7 +63,7 @@ public sealed class LogInterceptor(ILogger<LogInterceptor> logger) : ICommandInt
         {
             return directoryInfo.FullName;
         }
-        // Add more type-specific handling here if needed in the future
+        // TryAdd more type-specific handling here if needed in the future
 
         return value;
     }

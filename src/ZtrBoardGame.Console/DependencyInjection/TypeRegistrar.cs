@@ -14,6 +14,7 @@ using ZtrBoardGame.Console.Commands.Setup;
 using ZtrBoardGame.Console.Infrastructure;
 using ZtrBoardGame.RaspberryPi;
 using ZtrBoardGame.RaspberryPi.HardwareAccess.SystemConfigurers;
+using ZtrBoardGame.Server.Commons;
 
 namespace ZtrBoardGame.Console.DependencyInjection;
 
@@ -51,6 +52,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
         _services.AddSingleton<TypeRegistrar>(this);
 
         _services.AddSingleton<ILiveGameDashboard, LiveGameDashboard>();
+        _services.AddSingleton<IAvaloniaGameDashboard, AvaloniaGameDashboard>();
 
         _services.AddSingleton<ICommandInterceptor, HardwareCheckInterceptor>();
         _services.AddSingleton<ISystemConfiguratorOrchestrator, SystemConfiguratorOrchestrator>();
